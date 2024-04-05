@@ -3,8 +3,6 @@ defmodule MixeryWeb.Router do
 
   # import MixeryWeb.TwitchAuth
 
-  import Plug.BasicAuth
-
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -19,9 +17,10 @@ defmodule MixeryWeb.Router do
     plug :accepts, ["json"]
   end
 
-  pipeline :mixery_dev do
-    plug :basic_auth, username: "teej_dv", password: "password"
-  end
+  # import Plug.BasicAuth
+  # pipeline :mixery_dev do
+  #   plug :basic_auth, username: "teej_dv", password: "password"
+  # end
 
   scope "/", MixeryWeb do
     pipe_through :browser

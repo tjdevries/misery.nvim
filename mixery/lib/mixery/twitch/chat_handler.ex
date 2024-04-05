@@ -70,7 +70,7 @@ defmodule Mixery.Twitch.ChatHandler do
     Mixery.broadcast_event(%Event.PlayVideo{video_url: "/images/focused.webm", length_ms: 6000})
   end
 
-  defp handle_command(%Message{text: "!send " <> msg, user: %{login: "teej_dv"}}) do
+  defp handle_command(%Message{text: "!send " <> msg, badges: badges}) when badges.broadcaster do
     [display, amount] = String.split(msg, " ")
 
     login =

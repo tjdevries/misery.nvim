@@ -9,6 +9,9 @@ defmodule Mixery.Application do
 
   @impl true
   def start(_type, _args) do
+    obs = Application.fetch_env!(:mixery, :obs)
+    obs_uri = Keyword.fetch!(obs, :uri)
+
     children = [
       MixeryWeb.Telemetry,
       Mixery.Repo,
@@ -24,7 +27,7 @@ defmodule Mixery.Application do
       # Start to serve requests, typically the last entry
       MixeryWeb.Endpoint,
       {TwitchEventSub.WebSocket, Application.fetch_env!(:mixery, :event_sub)},
-      {Mixery.OBS.Handler, uri: "ws://192.168.4.121:4455", state: %Mixery.OBS.State{}, opts: []},
+      {Mixery.OBS.Handler, uri: obs_uri, state: %Mixery.OBS.State{}, opts: []},
       Mixery.Server
     ]
 

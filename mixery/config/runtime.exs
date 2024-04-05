@@ -124,10 +124,15 @@ twitch_access_token =
   end
 
 config :mixery,
+  obs: [
+    uri:  "ws://192.168.4.121:4455"
+  ]
+
+config :mixery,
   event_sub: [
-    broadcaster_user_id: "114257969",
-    user_id: "114257969",
-    channel_ids: ["114257969"],
+    broadcaster_user_id: System.fetch_env!("TWITCH_BROADCASTER_USER_ID"),
+    user_id: System.fetch_env!("TWITCH_USER_ID"),
+    channel_ids: [System.fetch_env!("TWITCH_CHANNEL_ID")],
     handler: Mixery.Twitch.EventSubHandler,
     client_id: System.fetch_env!("TWITCH_CLIENT_ID"),
     access_token: twitch_access_token,

@@ -1,3 +1,22 @@
+# To Run:
+
+Environment Variables:
+
+```
+# Auth Related
+TWITCH_BROADCASTER_USER_ID
+TWITCH_USER_ID
+TWITCH_CLIENT_ID=<your client id>
+
+# Scope Related
+TWITCH_AUTH_SCOPE=<whitespace delimited list of scopes, can be used with mix twitch.auth>
+```
+
+Should run (from mixery folder):
+
+```
+mixery/ $ mix twitch.auth --json
+```
 
 # TODO:
 

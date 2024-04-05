@@ -43,7 +43,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_error(404)
 
 # Create HTTP server
-server_address = ('', 8000)  # Listen on all available interfaces on port 8000
+server_address = ('localhost', 8000)  # Listen on all available interfaces on port 8000
 httpd = HTTPServer(server_address, RequestHandler)
 httpd.socket.settimeout(0.1)
 
