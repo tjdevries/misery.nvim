@@ -1,0 +1,9 @@
+.env
+.twitch.json
+.cf/
+
+*.db.*
+*.gz
+
+./aux/media/*
+./mixery/priv/static/*
