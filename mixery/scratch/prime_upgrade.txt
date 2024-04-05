@@ -1,0 +1,32 @@
+[lib/mixery/twitch/eventsub_handler.ex:91: Mixery.Twitch.EventSubHandler.handle_chat_notification/2]
+{"channel.chat.notification:prime_paid_upgrade", event} #=> {"channel.chat.notification:prime_paid_upgrade",
+ %{
+   "announcement" => nil,
+   "badges" => [
+     %{"id" => "3", "info" => "4", "set_id" => "subscriber"},
+     %{"id" => "2", "info" => "", "set_id" => "bits-leader"}
+   ],
+   "bits_badge_tier" => nil,
+   "broadcaster_user_id" => "114257969",
+   "broadcaster_user_login" => "teej_dv",
+   "broadcaster_user_name" => "teej_dv",
+   "charity_donation" => nil,
+   "chatter_is_anonymous" => false,
+   "chatter_user_id" => "26203086",
+   "chatter_user_login" => "chrishannah",
+   "chatter_user_name" => "ChrisHannah",
+   "color" => "#FF0000",
+   "community_sub_gift" => nil,
+   "gift_paid_upgrade" => nil,
+   "message" => %{"fragments" => [], "text" => ""},
+   "message_id" => "bf0c88fb-f55b-429b-be17-6dc7b1f83830",
+   "notice_type" => "prime_paid_upgrade",
+   "pay_it_forward" => nil,
+   "prime_paid_upgrade" => %{"sub_tier" => "1000"},
+   "raid" => nil,
+   "resub" => nil,
+   "sub" => nil,
+   "sub_gift" => nil,
+   "system_message" => "ChrisHannah converted from a Prime sub to a Tier 1 sub!",
+   "unraid" => nil
+ }}
