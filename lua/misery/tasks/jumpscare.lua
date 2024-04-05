@@ -6,18 +6,20 @@
 
 -- now go normilize audio ls -1 | xargs -I"{}" ffmpeg -i "{}" -filter:a loudnorm norm_"{}"
 
+local root = require("misery").plugin_root
+
 return require("misery.task").make_task {
   name = "JUMPSCARE",
   timeout = function()
     return math.random(5, 10)
   end,
   start = function()
-    local dir = vim.fs.dir("/home/tjdevries/plugins/misery.nvim/aux/media/", { depth = 99 })
+    local dir = vim.fs.dir(vim.fs.joinpath(root, "aux/media/"), { depth = 99 })
     local files = vim.tbl_filter(function(file)
       return file[2] == "file"
     end, vim.iter(dir):totable())
 
-    local file = vim.fs.joinpath("/home/tjdevries/plugins/misery.nvim/aux/media/", files[math.random(#files)][1])
+    local file = vim.fs.joinpath(root, "aux/media/", files[math.random(#files)][1])
     print("TRYING TO PLAY:", file)
 
     vim.system { "mpv", file, "--volume=150" }
