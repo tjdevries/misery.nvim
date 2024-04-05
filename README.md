@@ -18,6 +18,18 @@ Should run (from mixery folder):
 mixery/ $ mix twitch.auth --json
 ```
 
+Referenced Executables:
+
+- kitty lua/misery/tasks/ed.lua
+- emacs lua/misery/tasks/emacs.lua
+- pkill
+- mpv lua/misery/tasks/jumpscare.lua
+- libreoffice lua/misery/tasks/libre-office.lua
+- xrandr lua/misery/tasks/screen-upside-down.lua
+- code lua/misery/tasks/vs-c\*de.lua
+- playerctl mixery/lib/mixery/media/playerctl.ex
+- firefox mixery/lib/mixery/media/playerctl.ex
+
 # TODO:
 
 - [ ] broadcast a message via block in overlay
@@ -26,6 +38,7 @@ mixery/ $ mix twitch.auth --json
 # Personal Neovim Config Rewrite
 
 Rules:
+
 - No copy paste (yank/put) from anywhere (old config/readmes/kickstart/etc)
   - No AI Completions
 - No git/fs/undohistory/etc tricks
@@ -38,8 +51,9 @@ Rules:
 - Keyboard: onscreen, tablet-handwriting, one-finger-only
 - Monitor: rotated, right-to-left
 - Random: no-talking-only-singing, sports-commentator-mode, YT Chat on screen
-- Editors: ed, emacs, libre office, chat-gpt-copy-paste, vs c*de
+- Editors: ed, emacs, libre office, chat-gpt-copy-paste, vs c\*de
 - Multi-Time:
+
   - 5 minutes:
     - Peace
     - No-going-back/First-try
@@ -68,6 +82,7 @@ Rules:
     - chat has to pretend it's still working
 
 I want to make a website where you can:
+
 - send me "gifts" using your twitch points
 
 Scopes:
