@@ -1,6 +1,8 @@
 defmodule MixeryWeb.Router do
   use MixeryWeb, :router
 
+  import MixeryWeb.TwitchAuth
+
   # import MixeryWeb.TwitchAuth
 
   pipeline :browser do
@@ -17,10 +19,9 @@ defmodule MixeryWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # import Plug.BasicAuth
-  # pipeline :mixery_dev do
-  #   plug :basic_auth, username: "teej_dv", password: "password"
-  # end
+  scope "/", MixeryWeb do
+    live "/", IndexLive
+  end
 
   scope "/", MixeryWeb do
     pipe_through :browser
@@ -68,6 +69,34 @@ defmodule MixeryWeb.Router do
   # end
 
   ## Authentication routes
+  #
+  # import Plug.BasicAuth
+  # pipeline :mixery_dev do
+  #   plug :basic_auth, username: "teej_dv", password: "password"
+  # end
+
+  scope "/auth", MixeryWeb.Auth do
+    pipe_through [:browser, :redirect_if_twitch_is_authenticated]
+
+    get "/twitch", AuthController, :request
+    get "/twitch/callback", AuthController, :callback
+
+    live_session :redirect_if_twitch_is_authenticated,
+      on_mount: [{MixeryWeb.TwitchAuth, :redirect_if_twitch_is_authenticated}] do
+      live "/twitch/login", TwitchLoginLive, :new
+    end
+  end
+
+  scope "/", MixeryWeb do
+    pipe_through [:browser, :require_authenticated_twitch]
+
+    live_session :require_authenticated_twitch,
+      on_mount: [{MixeryWeb.TwitchAuth, :ensure_authenticated}] do
+      live "/dashboard", DashboardLive, :index
+
+      # live "/twitch_accounts/settings", TwitchSettingsLive, :edit
+    end
+  end
 
   # scope "/", MixeryWeb do
   #   pipe_through [:browser, :redirect_if_twitch_is_authenticated]
@@ -81,23 +110,10 @@ defmodule MixeryWeb.Router do
   # end
 
   # scope "/", MixeryWeb do
-  #   pipe_through [:browser, :require_authenticated_twitch]
-  #
-  #   live_session :require_authenticated_twitch,
-  #     on_mount: [{MixeryWeb.TwitchAuth, :ensure_authenticated}] do
-  #     live "/twitch_accounts/settings", TwitchSettingsLive, :edit
-  #   end
-  # end
-  #
-  # scope "/", MixeryWeb do
   #   pipe_through [:browser]
   #
-  #   delete "/logout", TwitchSessionController, :delete
+  #   get "/logout", TwitchAuth, :delete
   #
-  #   live_session :current_twitch,
-  #     on_mount: [{MixeryWeb.TwitchAuth, :mount_current_twitch}] do
-  #     live "/twitch_accounts/confirm/:token", TwitchConfirmationLive, :edit
-  #     live "/twitch_accounts/confirm", TwitchConfirmationInstructionsLive, :new
-  #   end
+  #   # delete "/logout", TwitchSessionController, :delete
   # end
 end

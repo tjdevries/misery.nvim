@@ -61,7 +61,13 @@ defmodule Mixery.Twitch.ChatHandler do
 
   defp handle_command(%Message{text: "!coins"}) do
     Mixery.broadcast_event(%Event.SendChat{
-      message: "Coin leaderboard: https://rewards.teej.tv/leaderboard"
+      message: "Rewards Dashboard: https://rewards.teej.tv/dashboard"
+    })
+  end
+
+  defp handle_command(%Message{text: "!yayayaya"}) do
+    Mixery.broadcast_event(%Event.SendChat{
+      message: "UNEMPLOYED KEKW"
     })
   end
 

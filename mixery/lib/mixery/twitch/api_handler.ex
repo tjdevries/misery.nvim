@@ -89,7 +89,7 @@ defmodule Mixery.Twitch.ApiHandler do
     # Make sure we get a chance to cleanup on exit
     Process.flag(:trap_exit, true)
 
-    Mixery.subscribe_to_neovim_connection_events()
+    Mixery.subscribe_to_reward_status_update_events()
     Mixery.subscribe_to_reward_events()
     Mixery.subscribe_to_send_chat_events()
 
@@ -117,32 +117,8 @@ defmodule Mixery.Twitch.ApiHandler do
   end
 
   @impl true
-  def handle_info(%Event.NeovimConnection{connections: []}, state) do
-    Logger.info("No connections")
-
-    query =
-      from r in ChannelReward,
-        where: r.enabled_on == ^:neovim
-
-    Enum.each(Repo.all(query), fn reward ->
-      set_reward_enabled_status(state, reward.twitch_reward_id, false)
-    end)
-
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_info(%Event.NeovimConnection{connections: connections}, state) do
-    Logger.info("Connections: #{inspect(connections)}")
-
-    query =
-      from r in ChannelReward,
-        where: r.enabled_on == ^:neovim
-
-    Enum.each(Repo.all(query), fn reward ->
-      set_reward_enabled_status(state, reward.twitch_reward_id, @status_neovim)
-    end)
-
+  def handle_info(%Event.RewardStatusUpdate{reward: reward, status: status}, state) do
+    set_reward_enabled_status(state, reward.twitch_reward_id, status)
     {:noreply, state}
   end
 
@@ -159,7 +135,7 @@ defmodule Mixery.Twitch.ApiHandler do
   end
 
   @impl true
-  def handle_info(%Event.Reward{redemption: redemption}, state) do
+  def handle_info(%Event.Reward{redemption: redemption, status: :fulfilled}, state) do
     Logger.info("[TwitchApiHandler] Got reward redemption: #{inspect(redemption)}")
 
     case redemption.reward do
@@ -173,6 +149,27 @@ defmodule Mixery.Twitch.ApiHandler do
         nil
     end
 
+    update_reward_redemption_status(
+      state,
+      redemption.twitch_redemption_id,
+      redemption.twitch_reward_id,
+      :fulfilled
+    )
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(%Event.Reward{redemption: redemption, status: :canceled}, state) do
+    Logger.info("[TwitchApiHandler] Canceled Reward Redemption: #{inspect(redemption)}")
+
+    update_reward_redemption_status(
+      state,
+      redemption.twitch_redemption_id,
+      redemption.twitch_reward_id,
+      :canceled
+    )
+
     {:noreply, state}
   end
 
@@ -183,6 +180,30 @@ defmodule Mixery.Twitch.ApiHandler do
         id: twitch_reward_id
       },
       json: %{is_enabled: is_enabled}
+    )
+  end
+
+  defp update_reward_redemption_status(state, id, reward_id, status) do
+    status =
+      case status do
+        :canceled -> "CANCELED"
+        :fulfilled -> "FULFILLED"
+        # OMEGALUL
+        :cancelled -> "CANCELED"
+        :fulfiled -> "FULFILLED"
+      end
+
+    # PATCH https://api.twitch.tv/helix/channel_points/custom_rewards/redemptions
+    # id	String	Yes	A list of IDs that identify the redemptions to update. To specify more than one ID, include this parameter for each redemption you want to update. For example, id=1234&id=5678. You may specify a maximum of 50 IDs.
+    # broadcaster_id	String	Yes	The ID of the broadcaster that’s updating the redemption. This ID must match the user ID in the user access token.
+    # reward_id	String	Yes	The ID that identifies the reward that’s been redeemed.
+    TwitchAPI.patch(state.auth, "/channel_points/custom_rewards/redemptions",
+      params: %{
+        id: id,
+        broadcaster_id: state.broadcaster_id,
+        reward_id: reward_id
+      },
+      json: %{status: status}
     )
   end
 end

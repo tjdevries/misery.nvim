@@ -13,7 +13,8 @@ defmodule MixeryWeb.Endpoint do
 
   socket "/live", Phoenix.LiveView.Socket,
     websocket: [connect_info: [session: @session_options]],
-    longpoll: [connect_info: [session: @session_options]]
+    # TODO: Im definitely gonna remember to put this back when i'm done with dev.
+    longpoll: false
 
   socket "/nvim", MixeryWeb.UserSocket,
     websocket: true,

@@ -4,7 +4,6 @@ defmodule Mixery.Server do
   require Logger
 
   alias Mixery.Coin
-  alias Mixery.Event
   alias Mixery.Event.Subscription
 
   def start_link(args) do
@@ -16,12 +15,6 @@ defmodule Mixery.Server do
     Mixery.subscribe_to_sub_events()
 
     {:ok, args}
-  end
-
-  def handle_info(%Event.Reward{redemption: reward_redemption}, state) do
-    Logger.info("[Server] got reward redemption: #{inspect(reward_redemption)}")
-
-    {:noreply, state}
   end
 
   def handle_info(%Subscription.GiftSubscription{} = gift_sub, state) do
@@ -51,6 +44,10 @@ defmodule Mixery.Server do
     amount = Coin.calculate(sub.subscription.sub_tier, 1, sub.subscription.duration)
     Coin.insert(sub.user, amount, "subscription:#{sub.subscription.sub_tier}")
 
+    {:noreply, state}
+  end
+
+  def handle_info(_, state) do
     {:noreply, state}
   end
 end

@@ -21,6 +21,7 @@ defmodule Mixery.Application do
       {Phoenix.PubSub, name: Mixery.PubSub},
       {Finch, name: Mixery.Finch},
       Mixery.Twitch.ApiHandler.child_spec(Application.fetch_env!(:mixery, :event_sub)),
+      Mixery.RewardHandler,
       Mixery.Neovim.Connections,
       # Start a worker by calling: Mixery.Worker.start_link(arg)
       # {Mixery.Worker, arg},

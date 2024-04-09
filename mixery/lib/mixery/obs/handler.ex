@@ -12,22 +12,21 @@ defmodule Mixery.OBS.Handler do
 
   @impl true
   def handle_connect(status, headers, state) do
-    Mixery.subscribe("obs")
     Mixery.subscribe_to_reward_events()
 
-    IO.puts("#{inspect(status)}:#{inspect(headers)}:#{inspect(state)}")
-    dbg(status)
+    Logger.info("#{inspect(status)}:#{inspect(headers)}:#{inspect(state)}")
     {:ok, state}
   end
 
   @impl true
-  def handle_error(error, state) do
-    IO.puts("ERROR TIME:#{inspect(error)}:#{inspect(state)}")
-    {:ignore, state}
+  def handle_disconnect(status, headers, state) do
+    dbg({:disconnect, status, headers, state})
+    :close
   end
 
   @impl true
   def handle_in({:text, msg}, state) do
+    Logger.info("handle_in: #{inspect(msg)}")
     decoded = Jason.decode!(msg)
     handle_obs_message(decoded["op"], decoded["d"], state)
   end
@@ -45,9 +44,7 @@ defmodule Mixery.OBS.Handler do
   end
 
   @impl true
-  def handle_info(%Event.Reward{redemption: redemption}, state) do
-    dbg({:obs, redemption})
-
+  def handle_info(%Event.Reward{redemption: redemption, status: :fulfilled}, state) do
     case redemption.reward do
       nil ->
         nil
@@ -60,19 +57,26 @@ defmodule Mixery.OBS.Handler do
             "sceneName" => "Primary - with tablet"
           }
         })
+
+      _ ->
+        nil
     end
 
     {:ok, state}
   end
 
+  def handle_info(_, state) do
+    {:ok, state}
+  end
+
   def send_obs_message(op, msg) do
-    Fresh.send(self(), obs_message(op, msg))
+    Fresh.send(self(), encode_obs_message(op, msg))
   end
 
   # handle hello message
   def handle_obs_message(0, _, state) do
     Logger.info("Got Hello Message")
-    {:reply, obs_message(1, %{"rpcVersion" => 1}), state}
+    {:reply, encode_obs_message(1, %{"rpcVersion" => 1}), state}
   end
 
   # handle identified message
@@ -83,6 +87,8 @@ defmodule Mixery.OBS.Handler do
 
   # handle RequestResponse message
   def handle_obs_message(7, msg, state) do
+    Logger.info("Got RequestResponse Message: #{inspect(msg)}")
+
     request_response = RequestResponse.from_map(msg)
 
     {cb, requests} = Map.pop(state.requests, request_response.request_id)
@@ -96,7 +102,7 @@ defmodule Mixery.OBS.Handler do
     {:ok, state}
   end
 
-  def obs_message(op, d) do
+  def encode_obs_message(op, d) do
     op =
       case op do
         :hello -> 0

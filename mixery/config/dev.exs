@@ -20,8 +20,8 @@ config :mixery, MixeryWeb.Endpoint,
   http: [ip: {0, 0, 0, 0}, port: 4000],
   check_origin: false,
   code_reloader: true,
-  debug_errors: false,
-  secret_key_base: "jHlPsl4xRC/JJjc/TCPkWBz2skb+p2T5dOm6ss+hXFHzjnpZiSiDMhgX1KLeB5IK",
+  debug_errors: true,
+  secret_key_base: System.fetch_env!("SECRET_KEY_BASE"),
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:mixery, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:mixery, ~w(--watch)]}

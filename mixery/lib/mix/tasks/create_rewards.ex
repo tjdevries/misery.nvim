@@ -334,6 +334,7 @@ defmodule Mix.Tasks.CreateRewards do
             true ->
               IO.puts("reward already exists: #{reward.title} -> #{reward.twitch_reward_id}")
               upsert_reward(new_reward, reward.twitch_reward_id)
+              update_reward_on_twitch(auth, broadcaster_id, reward.twitch_reward_id, new_reward)
 
             false ->
               IO.puts("Need to create new reward: #{reward.title} -> #{reward.twitch_reward_id}")
@@ -359,6 +360,46 @@ defmodule Mix.Tasks.CreateRewards do
     end
   end
 
+  def make_twitch_json(new_reward) do
+    dbg({:make_twitch_json, new_reward})
+    twitch_reward_cost = new_reward[:twitch_reward_cost]
+
+    twitch_json =
+      Map.drop(new_reward, [:key, :enabled_on, :twitch_reward_cost, :coin_cost])
+      |> Map.put(:is_enabled, false)
+      |> Map.put(:cost, twitch_reward_cost)
+
+    twitch_json =
+      case new_reward[:max_per_stream] do
+        nil -> twitch_json
+        _ -> Map.put(twitch_json, :is_max_per_stream_enabled, true)
+      end
+
+    twitch_json =
+      case new_reward[:max_per_user_per_stream] do
+        nil -> twitch_json
+        _ -> Map.put(twitch_json, :is_max_per_user_per_stream_enabled, true)
+      end
+
+    twitch_json =
+      case new_reward[:global_cooldown_seconds] do
+        nil -> twitch_json
+        _ -> Map.put(twitch_json, :is_global_cooldown_enabled, true)
+      end
+
+    case twitch_json[:coin_cost] do
+      cost when cost in [nil, 0] ->
+        twitch_json
+
+      cost ->
+        Map.put(
+          twitch_json,
+          :prompt,
+          "Costs #{cost} coin(s). #{twitch_json[:prompt]}"
+        )
+    end
+  end
+
   @spec reward_exists(TwitchAPI.Auth.t(), String.t(), ChannelReward.t()) :: boolean()
   def reward_exists(auth, broadcaster_id, reward) do
     case TwitchAPI.get(auth, "/channel_points/custom_rewards",
@@ -377,36 +418,31 @@ defmodule Mix.Tasks.CreateRewards do
     end
   end
 
+  def update_reward_on_twitch(auth, broadcaster_id, reward_id, new_reward) do
+    # PATCH https://api.twitch.tv/helix/channel_points/custom_rewards
+    key = new_reward[:key]
+    twitch_json = dbg(make_twitch_json(new_reward))
+
+    case TwitchAPI.patch(auth, "/channel_points/custom_rewards",
+           params: %{
+             broadcaster_id: broadcaster_id,
+             id: reward_id
+           },
+           json: twitch_json
+         ) do
+      {:ok, %{body: %{"data" => [%{"id" => twitch_reward_id}]}}} ->
+        twitch_reward_id
+
+      {:error, req} ->
+        dbg({key, req})
+        raise "couldnt do it"
+    end
+  end
+
   def create_new_reward(auth, broadcaster_id, new_reward) do
     key = new_reward[:key]
-    twitch_reward_cost = new_reward[:twitch_reward_cost]
 
-    twitch_json =
-      Map.drop(new_reward, [:key, :enabled_on, :twitch_reward_cost, :coin_cost])
-      |> Map.put(:is_enabled, false)
-      |> Map.put(:cost, twitch_reward_cost)
-      |> Map.put(:is_global_cooldown_enabled, not is_nil(new_reward[:global_cooldown_seconds]))
-      |> Map.put(
-        :is_max_per_user_per_stream_enabled,
-        not is_nil(new_reward[:max_per_user_per_stream])
-      )
-      |> Map.put(
-        :is_max_per_stream_enabled,
-        not is_nil(new_reward[:max_per_stream])
-      )
-
-    twitch_json =
-      case twitch_json[:coin_cost] do
-        cost when cost in [nil, 0] ->
-          twitch_json
-
-        cost ->
-          Map.put(
-            twitch_json,
-            :prompt,
-            "Costs #{cost} coin(s). #{twitch_json[:prompt]}"
-          )
-      end
+    twitch_json = make_twitch_json(new_reward)
 
     twitch_reward_id =
       case TwitchAPI.post(auth, "/channel_points/custom_rewards",

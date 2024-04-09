@@ -125,7 +125,7 @@ twitch_access_token =
 
 config :mixery,
   obs: [
-    uri:  "ws://192.168.4.121:4455"
+    uri: "ws://192.168.4.121:4455"
   ]
 
 config :mixery,
@@ -135,6 +135,7 @@ config :mixery,
     channel_ids: [System.fetch_env!("TWITCH_CHANNEL_ID")],
     handler: Mixery.Twitch.EventSubHandler,
     client_id: System.fetch_env!("TWITCH_CLIENT_ID"),
+    client_secret: System.fetch_env!("TWITCH_CLIENT_SECRET"),
     access_token: twitch_access_token,
     subscriptions: ~w[
       channel.chat.message channel.chat.notification

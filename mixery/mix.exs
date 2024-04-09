@@ -64,6 +64,9 @@ defmodule Mixery.MixProject do
       {:hello_twitch_api,
        git: "https://github.com/hellostream/twitch_api", branch: "main", override: true},
       {:dotenv, "~> 3.0.0"},
+      # Auth related
+      {:oauth2, "~> 2.0"},
+
       # Chat said this one was amazing and i'll have literally zero issues
       # {:mint_web_socket, "~> 1.0.0"},
       # ShyRyan said this one was amazing and way better than anything he could write (duh, talk about being redundant)

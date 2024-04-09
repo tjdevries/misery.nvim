@@ -11,6 +11,7 @@ defmodule Mixery do
   @coin_event "coin-event"
   @neovim_connection_event "neovim-connection-event"
   @reward_event "reward-event"
+  @reward_status_update_event "reward-status-update-event"
   @play_video_event "play-video-event"
   @send_chat_event "send-chat-event"
   @subscription_event "subscription-event"
@@ -57,6 +58,10 @@ defmodule Mixery do
     broadcast(@neovim_connection_event, event)
   end
 
+  def broadcast_event(%Event.RewardStatusUpdate{} = event) do
+    broadcast(@reward_status_update_event, event)
+  end
+
   def broadcast_event(%Event.PlayVideo{} = event) do
     broadcast(@play_video_event, event)
   end
@@ -83,6 +88,10 @@ defmodule Mixery do
 
   def subscribe_to_neovim_connection_events() do
     subscribe(@neovim_connection_event)
+  end
+
+  def subscribe_to_reward_status_update_events() do
+    subscribe(@reward_status_update_event)
   end
 
   def subscribe_to_play_video_events() do

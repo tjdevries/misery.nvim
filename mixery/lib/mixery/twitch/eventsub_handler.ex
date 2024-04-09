@@ -44,24 +44,29 @@ defmodule Mixery.Twitch.EventSubHandler do
           key: reward.key
         })
 
-        case Coin.balance(redemption.user).amount do
-          nil ->
-            Mixery.broadcast_event(%Event.SendChat{
-              message: "No balance: @#{redemption.user.display} / Required: #{cost}"
-            })
+        status =
+          case Coin.balance(redemption.user).amount do
+            nil ->
+              Mixery.broadcast_event(%Event.SendChat{
+                message: "No balance: @#{redemption.user.display} / Required: #{cost}"
+              })
 
-            nil
+              :canceled
 
-          amount when amount < reward.coin_cost ->
-            Mixery.broadcast_event(%Event.SendChat{
-              message:
-                "Insufficient balance: @#{redemption.user.display}. Balance: #{amount} / Required: #{cost}"
-            })
+            amount when amount < reward.coin_cost ->
+              Mixery.broadcast_event(%Event.SendChat{
+                message:
+                  "Insufficient balance: @#{redemption.user.display}. Balance: #{amount} / Required: #{cost}"
+              })
 
-          amount when amount >= reward.coin_cost ->
-            Coin.insert(redemption.user, -reward.coin_cost, "redeemed:#{reward.key}")
-            Mixery.broadcast_event(%Event.Reward{redemption: redemption})
-        end
+              :canceled
+
+            amount when amount >= reward.coin_cost ->
+              Coin.insert(redemption.user, -reward.coin_cost, "redeemed:#{reward.key}")
+              :fulfilled
+          end
+
+        Mixery.broadcast_event(%Event.Reward{redemption: redemption, status: status})
 
       reward ->
         Repo.insert!(%RedemptionLedger{
@@ -73,7 +78,7 @@ defmodule Mixery.Twitch.EventSubHandler do
           key: reward.key
         })
 
-        Mixery.broadcast_event(%Event.Reward{redemption: redemption})
+        Mixery.broadcast_event(%Event.Reward{redemption: redemption, status: :fulfilled})
     end
   end
 

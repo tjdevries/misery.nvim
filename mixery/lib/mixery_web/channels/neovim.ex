@@ -48,7 +48,7 @@ defmodule MixeryWeb.Channel.Neovim do
   end
 
   @impl true
-  def handle_info(%Event.Reward{redemption: redemption}, socket) do
+  def handle_info(%Event.Reward{redemption: redemption, status: :fulfilled}, socket) do
     broadcast(socket, redemption.reward.key, redemption)
     {:noreply, socket}
   end

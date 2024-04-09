@@ -9,6 +9,7 @@ defmodule Mixery.Twitch.RewardRedemption do
     :user,
     :user_input,
     :reward,
+    :twitch_redemption_id,
     :twitch_reward_id,
     :twitch_reward_title,
     :twitch_reward_cost
@@ -34,6 +35,7 @@ defmodule Mixery.Twitch.RewardRedemption do
     %__MODULE__{
       user: user,
       user_input: event["user_input"],
+      twitch_redemption_id: event["id"],
       twitch_reward_id: twitch_reward_id,
       twitch_reward_cost: event["reward"]["cost"],
       twitch_reward_title: event["reward"]["title"],

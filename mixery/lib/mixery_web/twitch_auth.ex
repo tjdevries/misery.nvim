@@ -1,20 +1,15 @@
 defmodule MixeryWeb.TwitchAuth do
   use MixeryWeb, :verified_routes
 
+  require Logger
+
   import Plug.Conn
   import Phoenix.Controller
 
-  alias Mixery.Accounts
-
-  # Make the remember me cookie valid for 60 days.
-  # If you want bump or reduce this value, also change
-  # the token expiry itself in TwitchToken.
-  @max_age 60 * 60 * 24 * 60
-  @remember_me_cookie "_mixery_web_twitch_remember_me"
-  @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
+  @user_data_cookie "_mixery_twitch_user_data"
 
   @doc """
-  Logs the twitch in.
+  Logs the twitch in. LOGGING IN THE TWITCH!
 
   It renews the session ID and clears the whole session
   to avoid fixation attacks. See the renew_session
@@ -25,23 +20,13 @@ defmodule MixeryWeb.TwitchAuth do
   disconnected on log out. The line can be safely removed
   if you are not using LiveView.
   """
-  def log_in_twitch(conn, twitch, params \\ %{}) do
-    token = Accounts.generate_twitch_session_token(twitch)
+  def log_in_twitch(conn, user_data, _params \\ %{}) do
     twitch_return_to = get_session(conn, :twitch_return_to)
 
     conn
     |> renew_session()
-    |> put_token_in_session(token)
-    |> maybe_write_remember_me_cookie(token, params)
+    |> put_user_data_in_session(user_data)
     |> redirect(to: twitch_return_to || signed_in_path(conn))
-  end
-
-  defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
-    put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
-  end
-
-  defp maybe_write_remember_me_cookie(conn, _token, _params) do
-    conn
   end
 
   # This function renews the session ID and erases the whole
@@ -71,78 +56,35 @@ defmodule MixeryWeb.TwitchAuth do
   It clears all session data for safety. See renew_session.
   """
   def log_out_twitch(conn) do
-    twitch_token = get_session(conn, :twitch_token)
-    twitch_token && Accounts.delete_twitch_session_token(twitch_token)
-
     if live_socket_id = get_session(conn, :live_socket_id) do
       MixeryWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
     conn
+    |> delete_resp_cookie(@user_data_cookie, encrypted: true)
     |> renew_session()
-    |> delete_resp_cookie(@remember_me_cookie)
     |> redirect(to: ~p"/")
   end
 
-  @doc """
-  Authenticates the twitch by looking into the session
-  and remember me token.
-  """
   def fetch_current_twitch(conn, _opts) do
-    {twitch_token, conn} = ensure_twitch_token(conn)
-    twitch = twitch_token && Accounts.get_twitch_by_session_token(twitch_token)
-    assign(conn, :current_twitch, twitch)
+    {twitch_id, conn} = ensure_twitch_id(conn)
+    assign(conn, :current_twitch, twitch_id)
   end
 
-  defp ensure_twitch_token(conn) do
-    if token = get_session(conn, :twitch_token) do
-      {token, conn}
+  defp ensure_twitch_id(conn) do
+    if twitch_id = get_session(conn, :twitch_id) do
+      {twitch_id, conn}
     else
-      conn = fetch_cookies(conn, signed: [@remember_me_cookie])
+      conn = fetch_cookies(conn, encrypted: [@user_data_cookie])
 
-      if token = conn.cookies[@remember_me_cookie] do
-        {token, put_token_in_session(conn, token)}
+      if user_data = conn.cookies[@user_data_cookie] do
+        {user_data["twitch_id"], put_user_data_in_session(conn, user_data)}
       else
         {nil, conn}
       end
     end
   end
 
-  @doc """
-  Handles mounting and authenticating the current_twitch in LiveViews.
-
-  ## `on_mount` arguments
-
-    * `:mount_current_twitch` - Assigns current_twitch
-      to socket assigns based on twitch_token, or nil if
-      there's no twitch_token or no matching twitch.
-
-    * `:ensure_authenticated` - Authenticates the twitch from the session,
-      and assigns the current_twitch to socket assigns based
-      on twitch_token.
-      Redirects to login page if there's no logged twitch.
-
-    * `:redirect_if_twitch_is_authenticated` - Authenticates the twitch from the session.
-      Redirects to signed_in_path if there's a logged twitch.
-
-  ## Examples
-
-  Use the `on_mount` lifecycle macro in LiveViews to mount or authenticate
-  the current_twitch:
-
-      defmodule MixeryWeb.PageLive do
-        use MixeryWeb, :live_view
-
-        on_mount {MixeryWeb.TwitchAuth, :mount_current_twitch}
-        ...
-      end
-
-  Or use the `live_session` of your router to invoke the on_mount callback:
-
-      live_session :authenticated, on_mount: [{MixeryWeb.TwitchAuth, :ensure_authenticated}] do
-        live "/profile", ProfileLive, :index
-      end
-  """
   def on_mount(:mount_current_twitch, _params, session, socket) do
     {:cont, mount_current_twitch(socket, session)}
   end
@@ -151,12 +93,15 @@ defmodule MixeryWeb.TwitchAuth do
     socket = mount_current_twitch(socket, session)
 
     if socket.assigns.current_twitch do
+      dbg({:cont, socket.assigns.current_twitch})
       {:cont, socket}
     else
+      dbg({:halt, socket.assigns.current_twitch})
+
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/login")
+        |> Phoenix.LiveView.redirect(to: ~p"/auth/twitch/login")
 
       {:halt, socket}
     end
@@ -174,9 +119,7 @@ defmodule MixeryWeb.TwitchAuth do
 
   defp mount_current_twitch(socket, session) do
     Phoenix.Component.assign_new(socket, :current_twitch, fn ->
-      if twitch_token = session["twitch_token"] do
-        Accounts.get_twitch_by_session_token(twitch_token)
-      end
+      dbg(session["twitch_id"])
     end)
   end
 
@@ -203,18 +146,26 @@ defmodule MixeryWeb.TwitchAuth do
     if conn.assigns[:current_twitch] do
       conn
     else
-      conn
-      |> put_flash(:error, "You must log in to access this page.")
-      |> maybe_store_return_to()
-      |> redirect(to: ~p"/login")
-      |> halt()
+      case ensure_twitch_id(conn) do
+        {nil, conn} ->
+          conn
+          |> put_flash(:error, "You must log in to access this page.")
+          |> maybe_store_return_to()
+          |> redirect(to: ~p"/auth/twitch/login")
+          |> halt()
+
+        {_, conn} ->
+          conn
+      end
     end
   end
 
-  defp put_token_in_session(conn, token) do
+  defp put_user_data_in_session(conn, user_data) do
     conn
-    |> put_session(:twitch_token, token)
-    |> put_session(:live_socket_id, "twitch_accounts_sessions:#{Base.url_encode64(token)}")
+    |> put_session(:twitch_id, user_data["twitch_id"])
+    |> put_session(:twitch_display_name, user_data["display_name"])
+    |> put_session(:live_socket_id, "twitch_accounts_sessions:#{user_data["twitch_id"]}")
+    |> put_resp_cookie(@user_data_cookie, user_data, encrypt: true)
   end
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do
@@ -222,6 +173,9 @@ defmodule MixeryWeb.TwitchAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
-
   defp signed_in_path(_conn), do: ~p"/"
+
+  def delete(conn, _params) do
+    log_out_twitch(conn)
+  end
 end
