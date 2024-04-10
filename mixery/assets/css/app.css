@@ -3,3 +3,177 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+/*
+* INFO: this is the style from wild_duck(ahmed_ayob) 
+* */
+
+@import url("https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&family=Noto+Sans+Arabic:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+body {
+    font-family: "Poppins", sans-serif;
+}
+
+.app {
+    display: flex;
+    align-items: flex-start;
+    gap: 3rem;
+    background-color: #fff7ea;
+    height: 100vh;
+    font-size: 1rem;
+}
+
+.app>.app-content {
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #111111;
+    }
+
+    &>p {
+        font-size: 1rem;
+        color: #53524f;
+    }
+}
+
+.teej-coins {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+
+    button {
+        color: #f66640;
+        font-size: 1rem;
+        font-weight: 600;
+        padding: 0.7rem 0.9rem;
+        border-radius: 8px;
+        border: 1px solid #f66640;
+        transition: all 0.3s ease-in-out;
+    }
+}
+
+.btn {
+    background-color: #f66640;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.7rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #f66640;
+    cursor: pointer;
+    width: fit-content;
+    margin-inline: auto;
+    transition: all 0.3s ease-in-out;
+}
+
+.rewards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(300px, 1fr));
+    align-items: center;
+    justify-content: center;
+    gap: 5rem;
+    max-width: 1300px;
+    place-self: center;
+    margin-top: 3rem;
+
+    li {
+        display: grid;
+        place-content: center;
+        gap: 1rem;
+        overflow: hidden;
+        border: 1px solid #f66640;
+        border-radius: 8px;
+        padding: 7px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #f66640;
+
+        svg {
+            place-self: center;
+        }
+    }
+}
+
+.badge {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 1rem;
+    background: #fceadb;
+    padding: 1rem;
+    min-height: 120px;
+    width: 100%;
+    border-radius: 6px;
+
+    /* NOTE: next to the  badge class add what ever you want to customize the name of the card sudo  */
+    /* NOTE: and make sure you create another one like this down with your content*/
+    &.elite::after {
+        content: "ELITE TOOL";
+    }
+
+    &::after {
+        display: grid;
+        place-content: center;
+        display: block;
+        width: 120px;
+        height: 33px;
+        font-size: 0.8rem;
+        border: 1px solid #f66640;
+        background: #fdf5e8;
+        border-radius: 5rem;
+        position: absolute;
+        top: 90%;
+    }
+
+    h2 {
+        color: #1e1e1e;
+        text-transform: capitalize;
+    }
+}
+
+.reward-content {
+    display: grid;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+
+    p {
+        font-size: 0.9rem;
+        font-weight: 500;
+        max-width: 300px;
+    }
+
+    button {
+        display: flex;
+        align-items: center;
+        place-self: end;
+        gap: 0.4rem;
+        background: transparent;
+        color: #f66640;
+        padding: 0.6rem 0.9rem;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    &>div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+
+        button:last-child {
+            background: #f66640;
+            color: #fff;
+        }
+    }
+}
