@@ -27,70 +27,61 @@ defmodule Mix.Tasks.CreateRewards do
     broadcaster_id = "114257969"
     timeout_minute = 1
 
-    rewards = [
-      # Non-Coding
+    effects = [
       %{
-        twitch_reward_cost: 1,
-        coin_cost: 5,
-        key: "suit-up",
+        id: "suit-up",
+        cost: 5,
         title: "Put on a Suit Coat",
         prompt: "Have TJ put on a suit coat for the rest of the stream.",
-        enabled_on: :always,
-        max_per_stream: 1
+        enabled_on: :always
+        # max_per_stream: 1
       },
       %{
-        twitch_reward_cost: 1,
-        coin_cost: 50,
-        key: "marimba",
+        id: "marimba",
+        cost: 50,
         title: "Play the Marimba",
         prompt:
           "I will play one of the two songs I can actually play right now. I will practice more later.",
-        enabled_on: :always,
-        max_per_stream: 1
+        enabled_on: :always
+        # max_per_stream: 1
       },
       %{
-        twitch_reward_cost: 1,
-        coin_cost: 50,
-        key: "wordle",
+        id: "wordle",
+        cost: 50,
         title: "Solve today's Wordle Puzzle",
         prompt:
           "I'll solve today's wordle. If I fail, I delete a file of your choosing from my config",
         is_user_input_required: true,
-        enabled_on: :always,
-        max_per_stream: 1
+        enabled_on: :always
+        # max_per_stream: 1
       },
       %{
-        twitch_reward_cost: 1,
-        coin_cost: 50,
-        key: "leetcode",
+        id: "leetcode",
+        cost: 50,
         title: "Solve a LeetCode easy first try",
         prompt:
           "If I don't get it first try, I'll delete a file of your choosing from my config.",
         is_user_input_required: true,
-        enabled_on: :always,
-        max_per_stream: 1
+        enabled_on: :always
+        # max_per_stream: 1
       },
       %{
-        twitch_reward_cost: 1,
-        key: "switch-seat",
+        id: "switch-seat",
+        cost: 5,
         title: "Make me switch to a different seat",
         prompt:
           "Choose between 'chair', 'ball', 'standing' until someone else chooses or one hour (whichever is sooner)",
-        enabled_on: :always,
-        coin_cost: 5,
-        global_cooldown_seconds: 5 * timeout_minute
+        enabled_on: :always
+        # global_cooldown_seconds: 5 * timeout_minute
       },
-      # Turn on dog cam, OBS stuff on and off
-      # Coding
       %{
-        twitch_reward_cost: 1,
+        id: "delete-random-file",
         coin_cost: 100,
-        key: "delete-random-file",
         title: "Delete random file in nvim config",
         prompt:
           "Delete a random file in my neovim config. I cannot undo the delete or use git to retrieve it.",
-        enabled_on: :rewrite,
-        global_cooldown_seconds: 15 * timeout_minute
+        enabled_on: :rewrite
+        # global_cooldown_seconds: 15 * timeout_minute
       },
       %{
         twitch_reward_cost: 1,
@@ -286,7 +277,15 @@ defmodule Mix.Tasks.CreateRewards do
         prompt: "Play something loud to scare me. And chat.",
         is_user_input_required: false,
         enabled_on: :neovim
-      },
+      }
+    ]
+
+    effects
+    |> Enum.each(fn effect ->
+      dbg(effect)
+    end)
+
+    rewards = [
       # Teej Coin Related
       %{
         twitch_reward_cost: 9950,

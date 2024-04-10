@@ -56,6 +56,10 @@ defmodule Mixery.MixProject do
       {:hello_twitch_api,
        git: "https://github.com/hellostream/twitch_api", branch: "main", override: true},
       {:dotenv, "~> 3.0.0"},
+
+      # Oban
+      {:oban, "~> 2.17"},
+
       # Auth related
       {:oauth2, "~> 2.0"},
 

@@ -1,4 +1,4 @@
-defmodule Mixery.RewardHandler do
+defmodule Mixery.EffectStatusHandler do
   use GenServer
 
   require Logger
@@ -7,7 +7,8 @@ defmodule Mixery.RewardHandler do
 
   alias Mixery.Event
   alias Mixery.Repo
-  alias Mixery.Twitch.ChannelReward
+  alias Mixery.Effect
+  alias Mixery.EffectStatus
 
   @rewrite_enabled false
 
@@ -20,14 +21,14 @@ defmodule Mixery.RewardHandler do
     Mixery.subscribe_to_neovim_connection_events()
 
     statuses =
-      ChannelReward
+      Effect
       |> Repo.all()
-      |> Map.new(fn reward ->
-        case reward.enabled_on do
-          :always -> {reward.id, {true, reward}}
-          :rewrite -> {reward.id, {false, reward}}
-          :neovim -> {reward.id, {false, reward}}
-          :never -> {reward.id, {false, reward}}
+      |> Map.new(fn effect ->
+        case effect.enabled_on do
+          :always -> {effect.id, {true, effect}}
+          :rewrite -> {effect.id, {false, effect}}
+          :neovim -> {effect.id, {false, effect}}
+          :never -> {effect.id, {false, effect}}
         end
       end)
 
@@ -53,34 +54,36 @@ defmodule Mixery.RewardHandler do
   end
 
   @impl true
-  def handle_call({:reward_status, reward_id}, _from, state) do
-    {:reply, state.statuses[reward_id], state}
+  def handle_call({:effect_status, effect_id}, _from, state) do
+    {:reply, state.statuses[effect_id], state}
   end
 
   @impl true
-  def handle_call(:reward_statuses, _from, state) do
+  def handle_call(:effect_statuses, _from, state) do
     {:reply, state.statuses, state}
   end
 
-  def get_reward_status(reward) do
-    GenServer.call(__MODULE__, {:reward_status, reward.id})
-  end
+  def get_all_effect_statuses() do
+    query =
+      from es in EffectStatus,
+        select: es.effect_id,
+        where: es.status == ^:enabled,
+        distinct: es.effect_id
 
-  def get_all_reward_statuses() do
-    GenServer.call(__MODULE__, :reward_statuses)
+    Repo.all(query)
   end
 
   defp emit_neovim_statuses(state, status) do
     query =
-      from r in ChannelReward,
-        where: r.enabled_on == ^:neovim or (^@rewrite_enabled and r.enabled_on == ^:rewrite)
+      from eff in Effect,
+        where: eff.enabled_on == ^:neovim or (^@rewrite_enabled and eff.enabled_on == ^:rewrite)
 
     statuses =
       query
       |> Repo.all()
-      |> Enum.reduce(state.statuses, fn reward, statuses ->
-        Mixery.broadcast_event(%Event.RewardStatusUpdate{reward: reward, status: status})
-        Map.put(statuses, reward.id, {status, reward})
+      |> Enum.reduce(state.statuses, fn effect, statuses ->
+        Mixery.broadcast_event(%Event.EffectStatusUpdate{effect: effect, status: status})
+        Map.put(statuses, effect.id, {status, effect})
       end)
 
     state |> Map.put(:statuses, statuses)

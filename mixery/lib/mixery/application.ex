@@ -20,8 +20,9 @@ defmodule Mixery.Application do
       {DNSCluster, query: Application.get_env(:mixery, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Mixery.PubSub},
       {Finch, name: Mixery.Finch},
+      {Oban, Application.fetch_env!(:mixery, Oban)},
       Mixery.Twitch.ApiHandler.child_spec(Application.fetch_env!(:mixery, :event_sub)),
-      Mixery.RewardHandler,
+      Mixery.EffectStatusHandler,
       Mixery.Neovim.Connections,
       # Start a worker by calling: Mixery.Worker.start_link(arg)
       # {Mixery.Worker, arg},

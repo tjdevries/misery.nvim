@@ -115,6 +115,14 @@ defmodule MixeryWeb.DashboardLive do
      |> stream_insert(:rewards, %{id: reward.id, enabled: status, reward: reward})}
   end
 
+  def handle_info({:redeemed, reward_id, input}, socket) do
+    user = socket.assigns.user
+    reward = Repo.get!(ChannelReward, reward_id)
+
+    Mixery.Redemption.handle_redemption(user, reward, input)
+    {:noreply, socket}
+  end
+
   @impl true
   def handle_info(_info, socket) do
     {:noreply, socket}
@@ -125,11 +133,7 @@ defmodule MixeryWeb.DashboardLive do
     # Mixery.broadcast_event(%Event.Reward{})
     dbg({:clicked, reward_id})
 
-    user = socket.assigns.user
-    reward = Repo.get!(ChannelReward, reward_id)
-
-    Mixery.Redemption.handle_redemption(user, reward)
-
+    send(self(), {:redeemed, reward_id, nil})
     {:noreply, socket}
   end
 

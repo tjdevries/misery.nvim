@@ -80,6 +80,9 @@ function Task:start()
   local col = vim.o.columns
   local width = self.opts.update_width or 30
 
+  -- Clean up focused variable
+  focused = {}
+
   self.start_time = vim.loop.now()
 
   local make_window = function()

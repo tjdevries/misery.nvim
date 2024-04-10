@@ -74,6 +74,11 @@ socket:add_on_close(vim.schedule_wrap(function()
   print "==== OH NO, WE HAVE CLOSED THE CONNECTION ===="
 
   vim.defer_fn(function()
+    socket = Websocket:new {
+      host = "127.0.0.1",
+      port = 4000,
+      path = "/nvim/websocket?vsn=2.0.0",
+    }
     socket:connect()
   end, 1000)
 end))

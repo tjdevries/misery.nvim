@@ -3,50 +3,12 @@ defmodule MixeryWeb.Auth.TwitchLoginLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm">
-      <.header class="text-center">
+    <div class="mx-auto max-w-sm mt-40">
+      <div class="text-center text-gray-100 font-extrabold">
         Sign in to account
-        <%!-- Register
-        <:subtitle>
-          Don't have an account?
-          <.link navigate={~p"/auth/register"} class="font-semibold text-brand hover:underline">
-            Sign up
-          </.link>
-          for an account now.
-        </:subtitle>
-      --%>
-      </.header>
+      </div>
 
-      <%!-- Login form
-      <.simple_form for={@form} id="login_form" action={~p"/auth/login"} phx-update="ignore">
-        <.input field={@form[:email]} type="email" label="Email" required />
-        <.input field={@form[:password]} type="password" label="Password" required />
-
-        <:actions>
-          <.input field={@form[:remember_me]} type="checkbox" label="Keep me logged in" />
-          <.link href={~p"/auth/reset_password"} class="text-sm font-semibold">
-            Forgot your password?
-          </.link>
-        </:actions>
-        <:actions>
-          <.button phx-disable-with="Signing in..." class="w-full">
-            Sign in <span aria-hidden="true">→</span>
-          </.button>
-        </:actions>
-      </.simple_form>
-      --%>
       <div class="mt-10">
-        <div class="relative">
-          <div class="absolute inset-0 flex items-center" aria-hidden="true">
-            <div class="w-full border-t border-gray-200"></div>
-          </div>
-          <%!--
-          <div class="relative flex justify-center text-sm font-medium leading-6">
-            <span class="bg-white px-6 text-gray-900">Or continue with</span>
-          </div>
-        --%>
-        </div>
-
         <div class="mt-6">
           <.link
             navigate={~p"/auth/twitch"}

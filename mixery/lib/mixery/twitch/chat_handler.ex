@@ -54,6 +54,19 @@ defmodule Mixery.Twitch.ChatHandler do
     end
   end
 
+  defp handle_command(%Message{text: "!leaderboard"}) do
+    Mixery.broadcast_event(%Event.SendChat{
+      message: "Coin Leaderboard: https://rewards.teej.tv/leaderboard"
+    })
+  end
+
+  defp handle_command(%Message{text: text})
+       when text in ["!elixir", "!whyelixir", "!why-elixir", "!why_elixir"] do
+    Mixery.broadcast_event(%Event.SendChat{
+      message: "Because i like it :)"
+    })
+  end
+
   defp handle_command(%Message{text: "!song"}) do
     {song, 0} =
       System.cmd("playerctl", [

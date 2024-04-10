@@ -40,7 +40,7 @@ defmodule MixeryWeb.LeaderboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="coins" style="display:grid" phx-update="stream" class="w-full bg-black px-4">
+    <div id="coins" style="display:grid" phx-update="stream" class="w-full bg-gray-900 px-4">
       <div :for={{dom_id, coin} <- @streams.coins} id={dom_id} style={"order:#{-coin.amount}"}>
         <%= coin.display %> <%= coin.amount %>
         <%= if coin.gross do %>
