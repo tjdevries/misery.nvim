@@ -8,8 +8,7 @@
       <%= assigns[:page_title] || "Mixery" %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"} />
   </head>
   <body class="antialiased" style="background-color: black">
     <%= @inner_content %>

@@ -89,7 +89,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "Delete random file in nvim config",
         prompt:
           "Delete a random file in my neovim config. I cannot undo the delete or use git to retrieve it.",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 15 * timeout_minute
       },
       %{
@@ -99,7 +99,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "Pick a file to delete in neovim config",
         prompt:
           "Pick a file to delete in my neovim config. I cannot undo the delete or use git to retrieve it. NOTE: if you pick a file that doesn't exist, no refunds! :)",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 15 * timeout_minute
       },
       # Skip song
@@ -125,7 +125,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "fog-of-war",
         title: "Fog of War",
         prompt: "Shines flashlight in the darkness of code.",
-        enabled_on: :never,
+        enabled_on: :neovim,
         coin_cost: 5,
         global_cooldown_seconds: 2 * timeout_minute
       },
@@ -134,7 +134,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "invisaline",
         title: "Invisialine",
         prompt: "Makes current line invisible.",
-        enabled_on: :never,
+        enabled_on: :neovim,
         coin_cost: 5
       },
       %{
@@ -161,7 +161,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "on-screen-keyboard",
         title: "MODE: On Screen Keyboard",
         prompt: "I can only use the on screen keyboard to type (including vim motions).",
-        enabled_on: :never,
+        enabled_on: :rewrite,
         coin_cost: 5
       },
       # Add tablet-writing only
@@ -171,7 +171,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "MODE: Tablet Handwriting Only",
         prompt:
           "I can only use my tablet to type via handwriting-to-text (including vim motions).",
-        enabled_on: :never,
+        enabled_on: :rewrite,
         coin_cost: 5
       },
       %{
@@ -180,7 +180,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "MODE: Keyboard 3 Second Delay",
         prompt:
           "We intercept every keystroke that I send to the computer and delay it 3 seconds before executing it",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         coin_cost: 15
       },
       # Editors
@@ -191,7 +191,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "EDITOR: Only can copy/paste chat gpt",
         prompt:
           "Use ChatGPT as my editor. I cannot type anything into nvim. Only allowed to copy/paste to-and-from chat gpt.",
-        enabled_on: :neovim
+        enabled_on: :rewrite
       },
       %{
         twitch_reward_cost: 1,
@@ -199,7 +199,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "vs-c*de",
         title: "EDITOR: Use VS C*de for 15 minutes",
         prompt: "Only allowed to use default VS C*de for 15 minutes. No other editors allowed.",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 60 * timeout_minute
       },
       %{
@@ -208,7 +208,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "emacs",
         title: "EDITOR: Use Emacs for 15 minutes",
         prompt: "Open default Emacs for 15 minutes. No other editors allowed.",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 60 * timeout_minute
       },
       %{
@@ -217,7 +217,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "ed",
         title: "EDITOR: Use `ed` for 15 minutes",
         prompt: "Open the default editor (ed) for 15 minutes. No other editors allowed.",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 60 * timeout_minute
       },
       %{
@@ -226,7 +226,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "libre-office",
         title: "EDITOR: Use libre-office for 15 minutes",
         prompt: "Open the libre-office for 15 minutes. No other editors allowed.",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 60 * timeout_minute
       },
       %{
@@ -235,7 +235,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "right-to-left",
         title: "EDITOR: set rightoleft",
         prompt: "Sets the editor to 'righttoleft' mode, which makes everything backwards",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 60 * timeout_minute
       },
       %{
@@ -244,7 +244,7 @@ defmodule Mix.Tasks.CreateRewards do
         key: "screen-upside-down",
         title: "Rotate screen upside-down",
         prompt: "Rotates my entire monitor 180 degrees (upside-down).",
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 60 * timeout_minute
       },
       #
@@ -256,7 +256,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "No Going Back",
         prompt: "If my cursor moves backwards at all, the entire file is deleted.",
         is_user_input_required: false,
-        enabled_on: :never
+        enabled_on: :rewrite
       },
       %{
         twitch_reward_cost: 1,
@@ -265,7 +265,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "Pick a Random Font",
         prompt: "Sets a random font in my terminal",
         is_user_input_required: false,
-        enabled_on: :neovim
+        enabled_on: :rewrite
       },
       %{
         twitch_reward_cost: 1,
@@ -274,7 +274,7 @@ defmodule Mix.Tasks.CreateRewards do
         title: "Peaceful Editing",
         prompt: "Five minutes of peaceful editing for teej",
         is_user_input_required: false,
-        enabled_on: :neovim,
+        enabled_on: :rewrite,
         global_cooldown_seconds: 60 * 60
       },
       # Currently only via neovim?... But could be other places I guess

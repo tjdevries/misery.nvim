@@ -49,6 +49,7 @@ defmodule Mixery.Twitch.ChatHandler do
     case text do
       "!" <> _ -> handle_command(message)
       "teejdvFocus" <> _ -> handle_command(message)
+      text -> handle_chat_message(message)
       _ -> nil
     end
   end
@@ -146,5 +147,24 @@ defmodule Mixery.Twitch.ChatHandler do
       vip: vip,
       broadcaster: broadcaster
     }
+  end
+
+  defp handle_chat_message(%Message{text: text}) do
+    text = String.downcase(text)
+
+    if (String.contains?(text, "what font") or String.contains?(text, "font?")) and
+         not String.contains?(text, "pasta"),
+       do:
+         Mixery.broadcast_event(%Event.SendChat{
+           message:
+             "Looks like you asked about my font/setup. OS: Pop!_OS, WM: AwesomeWM, Terminal: Wezterm, Font: Berkely Mono"
+         })
+
+    if String.contains?(text, "what is your keyboard"),
+      do:
+        Mixery.broadcast_event(%Event.SendChat{
+          message:
+            "It's a Dactyl Manuform. I bought it from a nice person on reddit. They were helpful. 5x7 layout with 68g boba U4Ts. These U4Ts use a linear base rather than a tactile one, so the switches have more of a medium tactility. They've been lubed with tribosys 3203 | https://www.youtube.com/shorts/E7lb9sY6aJQ"
+        })
   end
 end
