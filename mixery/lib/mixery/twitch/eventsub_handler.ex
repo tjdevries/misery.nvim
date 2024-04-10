@@ -7,7 +7,6 @@ defmodule Mixery.Twitch.EventSubHandler do
 
   alias Mixery.Coin
   alias Mixery.Event
-  alias Mixery.Event
   alias Mixery.Twitch
   alias Mixery.Twitch.RewardRedemption
   alias Mixery.Twitch.ChannelReward
@@ -23,6 +22,9 @@ defmodule Mixery.Twitch.EventSubHandler do
     redemption = RewardRedemption.from_event(event)
 
     case redemption.reward do
+      %{} = reward ->
+        Mixery.Redemption.handle_redemption(redemption.user, reward, redemption.user_input)
+
       nil ->
         Logger.warning("Unknown reward: #{inspect(redemption)}")
 
@@ -33,52 +35,6 @@ defmodule Mixery.Twitch.EventSubHandler do
           twitch_prompt: redemption.user_input,
           twitch_cost: redemption.twitch_reward_cost
         })
-
-      %ChannelReward{coin_cost: cost} = reward when cost > 0 ->
-        Repo.insert!(%RedemptionLedger{
-          twitch_user_id: redemption.user.id,
-          twitch_reward_id: redemption.twitch_reward_id,
-          twitch_reward_title: redemption.twitch_reward_title,
-          twitch_prompt: redemption.user_input,
-          twitch_cost: redemption.twitch_reward_cost,
-          key: reward.key
-        })
-
-        status =
-          case Coin.balance(redemption.user).amount do
-            nil ->
-              Mixery.broadcast_event(%Event.SendChat{
-                message: "No balance: @#{redemption.user.display} / Required: #{cost}"
-              })
-
-              :canceled
-
-            amount when amount < reward.coin_cost ->
-              Mixery.broadcast_event(%Event.SendChat{
-                message:
-                  "Insufficient balance: @#{redemption.user.display}. Balance: #{amount} / Required: #{cost}"
-              })
-
-              :canceled
-
-            amount when amount >= reward.coin_cost ->
-              Coin.insert(redemption.user, -reward.coin_cost, "redeemed:#{reward.key}")
-              :fulfilled
-          end
-
-        Mixery.broadcast_event(%Event.Reward{redemption: redemption, status: status})
-
-      reward ->
-        Repo.insert!(%RedemptionLedger{
-          twitch_user_id: redemption.user.id,
-          twitch_reward_id: redemption.twitch_reward_id,
-          twitch_reward_title: redemption.twitch_reward_title,
-          twitch_prompt: redemption.user_input,
-          twitch_cost: redemption.twitch_reward_cost,
-          key: reward.key
-        })
-
-        Mixery.broadcast_event(%Event.Reward{redemption: redemption, status: :fulfilled})
     end
   end
 

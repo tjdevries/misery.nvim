@@ -13,33 +13,41 @@ defmodule MixeryWeb.DashboardLive do
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Mixery.subscribe_to_coin_events()
+      Mixery.subscribe_to_reward_status_update_events()
     end
 
     twitch_id = socket.assigns.current_twitch
     user = Repo.get!(User, twitch_id)
 
     balance =
-      case Coin.balance(user) do
+      case Coin.balance(user).amount do
         nil -> 0
-        balance -> balance.amount
+        amount -> amount
       end
 
     gross =
-      case Coin.gross(user) do
+      case Coin.gross(user).amount do
         nil -> 0
-        gross -> gross.amount
+        amount -> amount
       end
 
     # _ = Repo.all(ChannelReward)
 
-    reward_statuses = RewardHandler.get_all_reward_statuses()
+    rewards =
+      RewardHandler.get_all_reward_statuses()
+      |> Enum.map(fn {id, {enabled, reward}} ->
+        %{id: id, enabled: enabled, reward: reward}
+      end)
 
     socket =
       socket
+      |> assign(user: user)
       |> assign(display: user.display)
       |> assign(balance: balance)
       |> assign(gross: gross)
-      |> assign(reward_statuses: reward_statuses)
+      |> stream(:rewards, rewards, reset: true)
+
+    # |> assign(rewards: rewards)
 
     {:ok, socket}
   end
@@ -100,14 +108,42 @@ defmodule MixeryWeb.DashboardLive do
 
   @impl true
   def handle_info(
-        %Event.Coin{user: %{id: twitch_id}, amount: amount},
+        %Event.Coin{user: %{id: twitch_id}, amount: amount, gross: gross},
         %{assigns: %{current_twitch: twitch_id}} = socket
       ) do
-    {:noreply, assign(socket, :balance, amount)}
+    {:noreply, socket |> assign(:balance, amount) |> assign(gross: gross)}
+  end
+
+  @impl true
+  def handle_info(
+        %Event.RewardStatusUpdate{status: status, reward: reward},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> stream_insert(:rewards, %{id: reward.id, enabled: status, reward: reward})}
   end
 
   @impl true
   def handle_info(_info, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("redeem", %{"reward-id" => reward_id}, socket) do
+    # Mixery.broadcast_event(%Event.Reward{})
+    dbg({:clicked, reward_id})
+
+    user = socket.assigns.user
+    reward = Repo.get!(ChannelReward, reward_id)
+
+    Mixery.Redemption.handle_redemption(user, reward)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event(_, _, socket) do
     {:noreply, socket}
   end
 end

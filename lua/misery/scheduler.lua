@@ -58,4 +58,10 @@ M.stop = function()
   M.tasks = {}
 end
 
+M.skip = function()
+  if M._current_task then
+    M._current_task:done(false)
+  end
+end
+
 return M
