@@ -61,8 +61,8 @@ defmodule MixeryWeb.OverlayLive do
       url ->
         ~H"""
         <div
-          class={["mx-auto rounded-lg"]}
-          style="position: absolute; right: 0px; bottom: 0px; transform: scale(1.5); transform-origin: bottom right;"
+          class={["flex mx-auto my-auto justify-center items-center rounded-lg min-h-screen"]}
+          style="transform: scale(2);"
         >
           <video src={url} autoplay="true" />
         </div>

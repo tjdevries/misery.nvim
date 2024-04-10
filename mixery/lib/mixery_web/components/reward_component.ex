@@ -19,8 +19,28 @@ defmodule MixeryWeb.RewardComponent do
   #         </svg>
   #     </a>
   # </div>
+  #
+  #
+  # <div class="badge elite capitalize">
+  #   <h2><%= reward.title %></h2>
+  # </div>
+  # <div class="reward-content">
+  #   <div class="capitalize"><%= reward.prompt %></div>
+  #
+  #   <div>
+  #     <button type="button" class="btn">
+  #       <span><%= reward.coin_cost %></span>
+  #     </button>
+  #
+  #     <button type="button" class="btn">Redeem</button>
+  #   </div>
+  # </div>
+  #
+  # <div class="badge elite">
+  #     <h2><%= reward.title %></h2>
+  # </div>
 
-  def button(%{balance: balance, reward: %{coin_cost: coin_cost}} = assigns) do
+  def card(%{balance: balance, reward: %{coin_cost: coin_cost}} = assigns) do
     can_afford = balance > coin_cost
 
     ~H"""
@@ -31,15 +51,42 @@ defmodule MixeryWeb.RewardComponent do
       <div class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg">
         <%= @reward.prompt %>
       </div>
-      <%= if can_afford do %>
-        <CoreComponents.button phx-click="redeem" phx-value-reward-id={@reward.id}>
-          Redeem
-        </CoreComponents.button>
-      <% else %>
-        <CoreComponents.button disabled class="disabled:bg-red-700 cursor-not-allowed opacity-50">
-          Redeem
-        </CoreComponents.button>
-      <% end %>
+
+      <div class="grid grid-cols-2 gap-2 mt-auto my-auto">
+        <div class="flex flex-row justify-center items-center gap-1 border rounded-md">
+          <div>
+            <svg
+              stroke="currentColor"
+              fill="currentColor"
+              stroke-width="0"
+              viewBox="0 0 24 24"
+              height="20px"
+              width="20px"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M12.0049 22.0029C6.48204 22.0029 2.00488 17.5258
+            2.00488 12.0029C2.00488 6.48008 6.48204 2.00293 12.0049
+            2.00293C17.5277 2.00293 22.0049 6.48008 22.0049
+            12.0029C22.0049 17.5258 17.5277 22.0029 12.0049
+            22.0029ZM12.0049 7.76029L7.76224 12.0029L12.0049
+                            16.2456L16.2475 12.0029L12.0049 7.76029Z">
+              </path>
+            </svg>
+          </div>
+          <span><%= @reward.coin_cost %></span>
+        </div>
+        <div class="mt-auto">
+          <%= if can_afford do %>
+            <CoreComponents.button phx-click="redeem" phx-value-reward-id={@reward.id}>
+              Redeem
+            </CoreComponents.button>
+          <% else %>
+            <CoreComponents.button disabled class="disabled:bg-red-700 cursor-not-allowed opacity-50">
+              Redeem
+            </CoreComponents.button>
+          <% end %>
+        </div>
+      </div>
     </div>
     """
   end

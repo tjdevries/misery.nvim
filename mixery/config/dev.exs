@@ -23,8 +23,7 @@ config :mixery, MixeryWeb.Endpoint,
   debug_errors: true,
   secret_key_base: System.fetch_env!("SECRET_KEY_BASE"),
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:mixery, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:mixery, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:mixery, ~w(--sourcemap=inline --watch)]}
   ]
 
 # ## SSL Support
