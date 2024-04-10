@@ -100,6 +100,13 @@ defmodule Mixery.Coin do
         :tier_3 -> 5
       end
 
+    # Sometimes twitch sends 0 as the duration... smh
+    duration =
+      case duration do
+        0 -> 1
+        duration -> duration
+      end
+
     amount * multiplier * duration
   end
 end

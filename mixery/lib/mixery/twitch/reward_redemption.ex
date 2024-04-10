@@ -42,4 +42,18 @@ defmodule Mixery.Twitch.RewardRedemption do
       reward: reward
     }
   end
+
+  @spec from_reward(User.t(), ChannelReward.t(), String.t() | nil) :: t
+  def from_reward(user, reward, user_input \\ nil) do
+    %__MODULE__{
+      user: user,
+      user_input: user_input,
+      # TODO: Don't know if this is a good idea
+      twitch_redemption_id: UUID.uuid4(),
+      twitch_reward_id: reward.twitch_reward_id,
+      twitch_reward_cost: reward.twitch_reward_cost,
+      twitch_reward_title: reward.title,
+      reward: reward
+    }
+  end
 end

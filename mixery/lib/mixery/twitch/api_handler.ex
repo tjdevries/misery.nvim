@@ -136,8 +136,6 @@ defmodule Mixery.Twitch.ApiHandler do
 
   @impl true
   def handle_info(%Event.Reward{redemption: redemption, status: :fulfilled}, state) do
-    Logger.info("[TwitchApiHandler] Got reward redemption: #{inspect(redemption)}")
-
     case redemption.reward do
       %ChannelReward{key: "garner-teej-coins"} ->
         Coin.insert(redemption.user, 1, redemption.reward.key)

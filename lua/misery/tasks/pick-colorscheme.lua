@@ -18,6 +18,7 @@ local create = function(opts, callback)
       end, colorschemes)
 
       local colorscheme = opts.colorscheme or opts.user_input
+      self.state.colorscheme = colorscheme
       if not vim.tbl_contains(colorschemes, colorscheme) then
         self.state.bad_colorscheme = true
         return
@@ -30,7 +31,7 @@ local create = function(opts, callback)
     update = function(self)
       local last_line = nil
       if self.state.bad_colorscheme then
-        last_line = "== Invalid colorscheme =="
+        last_line = string.format("Invalid colorscheme: %s", self.state.colorscheme)
       end
 
       return { last_line }

@@ -17,7 +17,6 @@ DOING_IT_NOW = False
 
 
 class RequestHandler(BaseHTTPRequestHandler):
-
     timeout = 5
 
     def do_PUT(self):

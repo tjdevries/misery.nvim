@@ -1,6 +1,8 @@
 .env
 mixery.log
 
+themesongs/
+
 # The directory Mix will write compiled artifacts to.
 /_build/
 

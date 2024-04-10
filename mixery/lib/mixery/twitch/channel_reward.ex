@@ -16,7 +16,7 @@ defmodule Mixery.Twitch.ChannelReward do
           max_per_stream: pos_integer() | nil,
           max_per_user_per_stream: pos_integer() | nil,
           global_cooldown_seconds: pos_integer() | nil,
-          enabled_on: :always | :neovim | :never,
+          enabled_on: :always | :rewrite | :neovim | :never,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -34,7 +34,7 @@ defmodule Mixery.Twitch.ChannelReward do
     field :max_per_user_per_stream, :integer
     field :global_cooldown_seconds, :integer
 
-    field :enabled_on, Ecto.Enum, values: [:always, :neovim, :never], default: :always
+    field :enabled_on, Ecto.Enum, values: [:always, :rewrite, :neovim, :never], default: :always
 
     timestamps(type: :utc_datetime)
   end

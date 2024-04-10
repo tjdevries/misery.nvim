@@ -9,6 +9,8 @@ end
 defmodule Mixery.Twitch.ChatHandler do
   require Logger
 
+  import Ecto.Query
+
   alias Mixery.Coin
   alias Mixery.Event
   alias Mixery.Repo
@@ -27,21 +29,26 @@ defmodule Mixery.Twitch.ChatHandler do
     text = event["message"]["text"]
     message = %Message{user: user, text: text, badges: parse_badges(event["badges"])}
 
-    # query =
-    #   from c in ChatMessage,
-    #     where: c.twitch_user_id == ^user.id and fragment("date(?) >= CURRENT_DATE", c.updated_at)
-    #
-    # dbg(Repo.aggregate(query, :count))
+    query =
+      from c in ChatMessage,
+        where: c.twitch_user_id == ^user.id and fragment("date(?) >= CURRENT_DATE", c.updated_at)
+
+    is_first_message_today = not Repo.exists?(query)
 
     %ChatMessage{twitch_user_id: user.id, text: text}
     |> Repo.insert!()
 
     dbg({:chat_message, "Processing: #{user.display}: #{text}"})
 
-    Mixery.broadcast_event(%Event.Chat{user: user, message: text})
+    Mixery.broadcast_event(%Event.Chat{
+      user: user,
+      message: text,
+      is_first_message_today: is_first_message_today
+    })
 
     case text do
       "!" <> _ -> handle_command(message)
+      "teejdvFocus" <> _ -> handle_command(message)
       _ -> nil
     end
   end
@@ -59,6 +66,14 @@ defmodule Mixery.Twitch.ChatHandler do
     Mixery.broadcast_event(%Event.SendChat{message: song})
   end
 
+  defp handle_command(%Message{text: "!test", user: %{login: "teej_dv"}}) do
+    Mixery.broadcast_event(%Event.Chat{
+      user: %{login: "piq9117", id: "103596114"},
+      message: "test",
+      is_first_message_today: true
+    })
+  end
+
   defp handle_command(%Message{text: "!coins"}) do
     Mixery.broadcast_event(%Event.SendChat{
       message: "Rewards Dashboard: https://rewards.teej.tv/dashboard"
@@ -73,6 +88,10 @@ defmodule Mixery.Twitch.ChatHandler do
 
   defp handle_command(%Message{text: "!focused", badges: badges})
        when badges.broadcaster or badges.moderator do
+    Mixery.broadcast_event(%Event.PlayVideo{video_url: "/images/focused.webm", length_ms: 6000})
+  end
+
+  defp handle_command(%Message{text: "teejdvFocus" <> _, user: %{display: "wagslane"}}) do
     Mixery.broadcast_event(%Event.PlayVideo{video_url: "/images/focused.webm", length_ms: 6000})
   end
 

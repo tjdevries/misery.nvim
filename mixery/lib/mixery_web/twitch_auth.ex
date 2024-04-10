@@ -93,11 +93,8 @@ defmodule MixeryWeb.TwitchAuth do
     socket = mount_current_twitch(socket, session)
 
     if socket.assigns.current_twitch do
-      dbg({:cont, socket.assigns.current_twitch})
       {:cont, socket}
     else
-      dbg({:halt, socket.assigns.current_twitch})
-
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
@@ -119,7 +116,7 @@ defmodule MixeryWeb.TwitchAuth do
 
   defp mount_current_twitch(socket, session) do
     Phoenix.Component.assign_new(socket, :current_twitch, fn ->
-      dbg(session["twitch_id"])
+      session["twitch_id"]
     end)
   end
 

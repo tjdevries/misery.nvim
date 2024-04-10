@@ -46,7 +46,7 @@ defmodule MixeryWeb.Auth.AuthController do
 
     conn
     |> MixeryWeb.TwitchAuth.log_in_twitch(user_data)
-    |> redirect(to: ~p"/game")
+    |> redirect(to: ~p"/dashboard")
   end
 
   # Build the Twitch OAuth2 client.

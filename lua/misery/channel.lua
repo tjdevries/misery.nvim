@@ -41,6 +41,11 @@ socket:add_on_message(vim.schedule_wrap(function(frame)
     return
   end
 
+  if name == "phx_error" then
+    print(string.format("phx_error: %s", vim.inspect(payload[5])))
+    return
+  end
+
   local name = string.format("misery.tasks.%s", name)
   local ok, task = pcall(require, name)
   if ok then
@@ -67,6 +72,10 @@ end))
 
 socket:add_on_close(vim.schedule_wrap(function()
   print "==== OH NO, WE HAVE CLOSED THE CONNECTION ===="
+
+  vim.defer_fn(function()
+    socket:connect()
+  end, 1000)
 end))
 
 socket:connect()

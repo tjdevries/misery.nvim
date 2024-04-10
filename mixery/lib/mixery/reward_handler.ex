@@ -9,6 +9,8 @@ defmodule Mixery.RewardHandler do
   alias Mixery.Repo
   alias Mixery.Twitch.ChannelReward
 
+  @rewrite_enabled false
+
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -22,9 +24,10 @@ defmodule Mixery.RewardHandler do
       |> Repo.all()
       |> Map.new(fn reward ->
         case reward.enabled_on do
-          :always -> {reward.id, true}
-          :neovim -> {reward.id, false}
-          :never -> {reward.id, false}
+          :always -> {reward.id, {true, reward}}
+          :rewrite -> {reward.id, {false, reward}}
+          :neovim -> {reward.id, {false, reward}}
+          :never -> {reward.id, {false, reward}}
         end
       end)
 
@@ -54,13 +57,13 @@ defmodule Mixery.RewardHandler do
     {:reply, state.statuses[reward_id], state}
   end
 
-  def get_reward_status(reward) do
-    GenServer.call(__MODULE__, {:reward_status, reward.id})
-  end
-
   @impl true
   def handle_call(:reward_statuses, _from, state) do
     {:reply, state.statuses, state}
+  end
+
+  def get_reward_status(reward) do
+    GenServer.call(__MODULE__, {:reward_status, reward.id})
   end
 
   def get_all_reward_statuses() do
@@ -70,14 +73,14 @@ defmodule Mixery.RewardHandler do
   defp emit_neovim_statuses(state, status) do
     query =
       from r in ChannelReward,
-        where: r.enabled_on == ^:neovim
+        where: r.enabled_on == ^:neovim or (^@rewrite_enabled and r.enabled_on == ^:rewrite)
 
     statuses =
       query
       |> Repo.all()
       |> Enum.reduce(state.statuses, fn reward, statuses ->
         Mixery.broadcast_event(%Event.RewardStatusUpdate{reward: reward, status: status})
-        Map.put(statuses, reward.id, status)
+        Map.put(statuses, reward.id, {status, reward})
       end)
 
     state |> Map.put(:statuses, statuses)
