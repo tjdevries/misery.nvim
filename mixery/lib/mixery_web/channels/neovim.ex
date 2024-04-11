@@ -13,6 +13,7 @@ defmodule MixeryWeb.Channel.Neovim do
       case socket.assigns[:subscribed] do
         nil ->
           Mixery.subscribe_to_reward_events()
+          Mixery.subscribe_to_execute_effect_events()
 
           socket |> assign(subscribed: true)
 
@@ -50,6 +51,12 @@ defmodule MixeryWeb.Channel.Neovim do
   @impl true
   def handle_info(%Event.Reward{redemption: redemption, status: :fulfilled}, socket) do
     broadcast(socket, redemption.reward.key, redemption)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(%Event.ExecuteEffect{effect: effect}, socket) do
+    broadcast(socket, effect.id, effect)
     {:noreply, socket}
   end
 

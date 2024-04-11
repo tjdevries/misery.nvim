@@ -27,7 +27,6 @@ defmodule MixeryWeb.Router do
     pipe_through :browser
 
     # get "/", PageController, :home
-    live "/foo", FooLive
     live "/leaderboard", LeaderboardLive
   end
 

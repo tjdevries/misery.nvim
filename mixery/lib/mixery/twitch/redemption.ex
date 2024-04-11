@@ -1,4 +1,4 @@
-defmodule Mixery.Twitch.RewardRedemption do
+defmodule Mixery.Twitch.Redemption do
   alias Mixery.Repo
   alias Mixery.Twitch
   alias Mixery.Twitch.User

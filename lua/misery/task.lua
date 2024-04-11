@@ -44,6 +44,10 @@ Task.__index = Task
 --- Creates a new Task.
 ---@param opts misery.TaskOpts
 function Task.new(opts)
+  opts = opts or {}
+  opts.args = opts.args or {}
+  opts.args.user = opts.args.user or { display = "????" }
+
   local obj = setmetatable({
     opts = opts,
     state = {},

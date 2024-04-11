@@ -29,7 +29,7 @@ defmodule MixeryWeb.EffectComponent do
   #
   #   <div>
   #     <button type="button" class="btn">
-  #       <span><%= effect.coin_cost %></span>
+  #       <span><%= effect.cost %></span>
   #     </button>
   #
   #     <button type="button" class="btn">Redeem</button>
@@ -40,8 +40,8 @@ defmodule MixeryWeb.EffectComponent do
   #     <h2><%= effect.title %></h2>
   # </div>
 
-  def card(%{balance: balance, effect: %{coin_cost: coin_cost}} = assigns) do
-    can_afford = balance >= coin_cost
+  def card(%{balance: balance, effect: %{cost: cost}} = assigns) do
+    can_afford = balance >= cost
 
     # TODO: prompt is not good, send only coin cost to twitch
     prompt =
@@ -64,7 +64,7 @@ defmodule MixeryWeb.EffectComponent do
           <%= if @effect.is_user_input_required do %>
             <.live_component
               id={"effect-#{@effect.id}"}
-              module={MixeryWeb.effectInputComponent()}
+              module={MixeryWeb.EffectInputComponent}
               effect_id={@effect.id}
               input=""
             />
@@ -105,7 +105,7 @@ defmodule MixeryWeb.EffectComponent do
                     16.2456L16.2475 12.0029L12.0049 7.76029Z">
           </path>
         </svg>
-        <span><%= @effect.coin_cost %></span>
+        <span><%= @effect.cost %></span>
       </div>
     </div>
     """
@@ -115,7 +115,7 @@ defmodule MixeryWeb.EffectComponent do
   #   ~H"""
   #   <div class="text-center">
   #     <CoreComponents.button disabled class=" disabled:bg-red-700 cursor-not-allowed opacity-50">
-  #       <%= @effect.id %>: <%= @effect.key %>. Costs: <%= @effect.coin_cost %> coins
+  #       <%= @effect.id %>: <%= @effect.key %>. Costs: <%= @effect.cost %> coins
   #     </CoreComponents.button>
   #   </div>
   #   """
@@ -127,10 +127,10 @@ defmodule MixeryWeb.EffectComponent do
   #   """
   # end
 
-  # <div :if={enabled and effect.coin_cost <= @balance and effect.coin_cost != 0}>
+  # <div :if={enabled and effect.cost <= @balance and effect.cost != 0}>
   #   <div phx-click="redeem" phx-value-effect-id={effect_id} class="text-center">
   #     <.button disabled>
-  #       <%= effect_id %>: <%= effect.key %>. Costs: <%= effect.coin_cost %> coins
+  #       <%= effect_id %>: <%= effect.key %>. Costs: <%= effect.cost %> coins
   #     </.button>
   #   </div>
   # </div>

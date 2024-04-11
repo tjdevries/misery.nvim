@@ -4,6 +4,10 @@ defmodule MixeryWeb.LeaderboardLive do
   alias Mixery.Event
   alias Mixery.Coin
 
+  defmodule WebCoin do
+    defstruct [:id, :display, :amount, :gross]
+  end
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -52,34 +56,6 @@ defmodule MixeryWeb.LeaderboardLive do
   end
 
   @impl true
-  def handle_info(%Event.Chat{} = message, socket) do
-    # socket =
-    #   case message.message do
-    #     "!addcoin " <> message ->
-    #       split = String.split(message, ":")
-    #
-    #       case split do
-    #         [user, amount] ->
-    #           stream_insert(socket, :coins, %WebCoin{
-    #             id: user,
-    #             user: %{login: user},
-    #             amount: amount
-    #           })
-    #
-    #         _ ->
-    #           socket
-    #       end
-    #
-    #     _ ->
-    #       socket
-    #   end
-    #
-    {:noreply,
-     update(socket, :all_chats, &[message | &1])
-     |> assign_chats()}
-  end
-
-  @impl true
   def handle_info(%Event.Coin{user: user, amount: amount, gross: gross}, socket) do
     {:noreply,
      stream_insert(socket, :coins, %WebCoin{
@@ -88,28 +64,5 @@ defmodule MixeryWeb.LeaderboardLive do
        amount: amount,
        gross: gross
      })}
-  end
-
-  @impl true
-  def handle_event("chat-filter", %{"user" => user}, socket) do
-    # dbg({:event, socket})
-    {:noreply, assign(socket, :form, to_form(%{"user" => user})) |> assign_chats()}
-  end
-
-  defp assign_chats(socket) do
-    case socket.assigns.form.source["user"] do
-      nil ->
-        assign(socket, :chats, socket.assigns.all_chats)
-
-      "" ->
-        assign(socket, :chats, socket.assigns.all_chats)
-
-      user ->
-        assign(
-          socket,
-          :chats,
-          Enum.filter(socket.assigns.all_chats, &match?(^user <> _, &1.user.login))
-        )
-    end
   end
 end

@@ -79,7 +79,8 @@ defmodule Mixery.Server do
 
   def handle_info(%Event.Chat{user: user, is_first_message_today: true}, state) do
     # Coin.insert(user, Coin.calculate(message), "chat")
-    dbg({:first_chat, user})
+    _ = user
+
     {:noreply, state}
   end
 

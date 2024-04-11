@@ -7,8 +7,7 @@ defmodule Mixery.Twitch.RedemptionLedger do
           twitch_reward_id: String.t(),
           twitch_reward_title: String.t(),
           twitch_cost: pos_integer(),
-          twitch_prompt: String.t(),
-          key: String.t()
+          twitch_prompt: String.t()
         }
 
   schema "redemption_ledger" do
@@ -17,8 +16,6 @@ defmodule Mixery.Twitch.RedemptionLedger do
     field(:twitch_reward_title, :string)
     field(:twitch_cost, :integer)
     field(:twitch_prompt, :string)
-
-    field(:key, :string)
 
     timestamps(type: :utc_datetime)
   end

@@ -1,8 +1,24 @@
 defmodule Mixery.Effect do
   use Ecto.Schema
+  import Ecto.Changeset
   import Ecto.Query
 
   alias Mixery.Repo
+
+  @derive {Jason.Encoder,
+           only: [
+             :id,
+             :title,
+             :prompt,
+             :cost,
+             :is_user_input_required,
+             :enabled_on,
+             :cooldown,
+             :max_per_stream,
+             :max_per_user_per_stream,
+             :inserted_at,
+             :updated_at
+           ]}
 
   @type t :: %__MODULE__{
           id: String.t(),
@@ -24,7 +40,17 @@ defmodule Mixery.Effect do
     field :is_user_input_required, :boolean, default: false
     field :enabled_on, Ecto.Enum, values: [:always, :rewrite, :neovim, :never], default: :always
 
+    field :cooldown, :integer
+    field :max_per_stream, :integer
+    field :max_per_user_per_stream, :integer
+
     timestamps(type: :utc_datetime)
+  end
+
+  def changeset(effect, attrs) do
+    effect
+    |> cast(attrs, [:title, :prompt, :cost, :is_user_input_required, :enabled_on])
+    |> validate_required([:title, :prompt, :cost])
   end
 
   @spec get_status(%__MODULE__{}) :: %Mixery.EffectStatus{}

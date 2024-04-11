@@ -93,16 +93,9 @@ defmodule Mixery.Twitch.ApiHandler do
     Mixery.subscribe_to_reward_events()
     Mixery.subscribe_to_send_chat_events()
 
-    Enum.each(Repo.all(ChannelReward), fn reward ->
-      enabled =
-        case reward.enabled_on do
-          :always -> @status_always
-          :neovim -> false
-          :never -> false
-          _ -> false
-        end
-
-      set_reward_enabled_status(state, reward.twitch_reward_id, enabled)
+    Repo.all(ChannelReward)
+    |> Enum.each(fn reward ->
+      set_reward_enabled_status(state, reward.twitch_reward_id, true)
     end)
 
     {:ok, state}
@@ -110,8 +103,8 @@ defmodule Mixery.Twitch.ApiHandler do
 
   @impl true
   def terminate(_reason, state) do
-    Enum.each(Repo.all(ChannelReward), fn reward ->
-      # Disable all the rewards when exiting
+    Repo.all(ChannelReward)
+    |> Enum.each(fn reward ->
       set_reward_enabled_status(state, reward.twitch_reward_id, false)
     end)
   end

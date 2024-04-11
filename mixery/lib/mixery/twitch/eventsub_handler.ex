@@ -5,12 +5,11 @@ defmodule Mixery.Twitch.EventSubHandler do
 
   alias Mixery.Repo
 
-  alias Mixery.Coin
   alias Mixery.Event
   alias Mixery.Twitch
-  alias Mixery.Twitch.RewardRedemption
-  alias Mixery.Twitch.ChannelReward
+  alias Mixery.Twitch.Redemption
   alias Mixery.Twitch.RedemptionLedger
+  alias Mixery.Twitch.RedemptionHandler
 
   @impl true
   def handle_event("channel.channel_points_custom_reward_redemption.add", event) do
@@ -19,11 +18,11 @@ defmodule Mixery.Twitch.EventSubHandler do
     user_display = event["user_name"]
     Twitch.upsert_user(user_id, %{login: user_login, display: user_display})
 
-    redemption = RewardRedemption.from_event(event)
+    redemption = Redemption.from_event(event)
 
     case redemption.reward do
       %{} = reward ->
-        Mixery.Redemption.handle_redemption(redemption.user, reward, redemption.user_input)
+        RedemptionHandler.redeem(redemption.user, reward, redemption.user_input)
 
       nil ->
         Logger.warning("Unknown reward: #{inspect(redemption)}")

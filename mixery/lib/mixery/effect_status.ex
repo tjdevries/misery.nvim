@@ -6,7 +6,7 @@ defmodule Mixery.EffectStatus do
   alias Mixery.Repo
 
   schema "effect_status" do
-    field :effect_id, :id
+    field :effect_id, :string
     field :status, Ecto.Enum, values: [:enabled, :timeout, :disabled]
 
     timestamps(type: :utc_datetime)

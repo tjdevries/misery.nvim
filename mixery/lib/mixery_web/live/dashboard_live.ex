@@ -3,20 +3,20 @@ defmodule MixeryWeb.DashboardLive do
 
   # alias Mixery.Event
   alias Mixery.Coin
+  alias Mixery.EffectStatusHandler
   alias Mixery.Event
   alias Mixery.Repo
-  alias Mixery.RewardHandler
   alias Mixery.Twitch.User
-  alias Mixery.Twitch.ChannelReward
+  alias Mixery.Effect
 
   # Components
-  alias MixeryWeb.RewardComponent
+  alias MixeryWeb.EffectComponent
 
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Mixery.subscribe_to_coin_events()
-      Mixery.subscribe_to_reward_status_update_events()
+      Mixery.subscribe_to_effect_status_update_events()
     end
 
     twitch_id = socket.assigns.current_twitch
@@ -34,15 +34,13 @@ defmodule MixeryWeb.DashboardLive do
         amount -> amount
       end
 
-    # _ = Repo.all(ChannelReward)
-
-    rewards =
-      RewardHandler.get_all_reward_statuses()
-      |> Enum.map(fn {_, {enabled, reward}} ->
-        %{enabled: enabled, reward: reward}
+    effects =
+      EffectStatusHandler.get_all_effect_statuses()
+      |> Enum.map(fn {enabled, effect} ->
+        %{enabled: enabled == :enabled, effect: effect}
       end)
       |> Enum.to_list()
-      |> Enum.sort_by(& &1.reward.coin_cost)
+      |> Enum.sort_by(& &1.effect.cost)
 
     socket =
       socket
@@ -50,9 +48,7 @@ defmodule MixeryWeb.DashboardLive do
       |> assign(display: user.display)
       |> assign(balance: balance)
       |> assign(gross: gross)
-      |> assign(rewards: rewards)
-
-    # |> assign(rewards: rewards)
+      |> assign(effects: effects)
 
     {:ok, socket}
   end
@@ -68,33 +64,15 @@ defmodule MixeryWeb.DashboardLive do
         <div class="py-2 px-4 rounded-md border-2 border-orange-500">Accumulated: <%= @gross %></div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 container mx-auto">
-        <RewardComponent.card
-          :for={%{enabled: enabled, reward: reward} <- @rewards}
-          :if={enabled and reward.coin_cost > 0}
+        <EffectComponent.card
+          :for={%{enabled: enabled, effect: effect} <- @effects}
+          :if={enabled and effect.cost > 0}
           balance={@balance}
-          reward={reward}
+          effect={effect}
         />
       </div>
     </div>
     """
-
-    # <div class="grid grid-cols-2 gap-2 p-2">
-    #   <div class="text-left">
-    #     <h1 class="p-2 font-family-comic-sans"><%= @display %></h1>
-    #     <p>Twitch ID: <%= @current_twitch %></p>
-    #     <p>Current Teej Coins: <%= @balance %></p>
-    #     <p>Gross Teej Coins: <%= @gross %></p>
-    #   </div>
-    #   <div class="flex flex-wrap gap-2">
-    #     <div
-    #       :for={%{enabled: enabled, reward: reward} <- @rewards}
-    #       :if={enabled and reward.coin_cost > 0}
-    #       class="min-w-full"
-    #     >
-    #       <RewardComponent.button balance={@balance} reward={reward} />
-    #     </div>
-    #   </div>
-    # </div>
   end
 
   @impl true
@@ -107,20 +85,37 @@ defmodule MixeryWeb.DashboardLive do
 
   @impl true
   def handle_info(
-        %Event.RewardStatusUpdate{status: status, reward: reward},
+        %Event.EffectStatusUpdate{status: status, effect: effect},
         socket
       ) do
-    {:noreply,
-     socket
-     |> stream_insert(:rewards, %{id: reward.id, enabled: status, reward: reward})}
+    index =
+      Enum.find_index(socket.assigns.effects, fn %{effect: e} -> e.id == effect.id end)
+
+    socket =
+      assign(
+        socket,
+        :effects,
+        socket.assigns.effects
+        |> List.replace_at(
+          index,
+          Enum.at(socket.assigns.effects, index) |> Map.put(:enabled, status)
+        )
+      )
+
+    # item.enabled = status
+    # socket = assign(socket, :effects, socket.assigns.effects |> List.
+    # |> stream_insert(:effects, %{id: effect.id, enabled: status, effect: effect})
+    {:noreply, socket}
   end
 
-  def handle_info({:redeemed, reward_id, input}, socket) do
+  def handle_info({:execute_effect, effect_id, input}, socket) do
     user = socket.assigns.user
-    reward = Repo.get!(ChannelReward, reward_id)
+    effect = Repo.get!(Effect, effect_id)
 
-    Mixery.Redemption.handle_redemption(user, reward, input)
-    {:noreply, socket}
+    case Mixery.EffectHandler.execute(user, effect, input) do
+      :ok -> {:noreply, socket}
+      {:error, reason} -> {:noreply, socket}
+    end
   end
 
   @impl true
@@ -129,11 +124,10 @@ defmodule MixeryWeb.DashboardLive do
   end
 
   @impl true
-  def handle_event("redeem", %{"reward-id" => reward_id}, socket) do
-    # Mixery.broadcast_event(%Event.Reward{})
-    dbg({:clicked, reward_id})
+  def handle_event("redeem", %{"effect-id" => effect_id}, socket) do
+    dbg({:clicked, effect_id})
 
-    send(self(), {:redeemed, reward_id, nil})
+    send(self(), {:execute_effect, effect_id, nil})
     {:noreply, socket}
   end
 

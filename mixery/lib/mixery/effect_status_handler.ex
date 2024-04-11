@@ -20,6 +20,23 @@ defmodule Mixery.EffectStatusHandler do
   def init(_args) do
     Mixery.subscribe_to_neovim_connection_events()
 
+    Effect
+    |> Repo.all()
+    |> Enum.each(fn effect ->
+      %EffectStatus{
+        effect_id: effect.id,
+        status:
+          case effect.enabled_on do
+            :always -> :enabled
+            :rewrite -> :disabled
+            :neovim -> :disabled
+            :never -> :disabled
+          end
+      }
+      |> EffectStatus.changeset(%{})
+      |> Repo.insert!()
+    end)
+
     statuses =
       Effect
       |> Repo.all()
@@ -64,11 +81,44 @@ defmodule Mixery.EffectStatusHandler do
   end
 
   def get_all_effect_statuses() do
+    # query =
+    #   from es in EffectStatus,
+    #     select: es.effect_id,
+    #     where: es.status == ^:enabled,
+    #     distinct: true
+    # join: c in Comment, on: c.post_id == p.id
+    # query =
+    #   from [e, s] in EffectStatus,
+    #     join: s in assoc(e, :effect_status)
+
+    # # Create a query
+    # query = from p in Post,
+    #           join: c in Comment, on: c.post_id == p.id
+    #
+    # # Extend the query
+    # query = from [p, c] in query,
+    #           select: {p.title, c.body}
+
+    # select effects.id, current_status.id, current_status.status from effects
+    #   inner join (
+    #   select id, effect_id, status
+    #     from effect_status
+    #     group by effect_id having max(inserted_at)
+    #     order by effect_id)
+    #   as current_status on current_status.effect_id = effects.id
+    #
+    status_subquery =
+      from status in EffectStatus,
+        group_by: status.effect_id,
+        having: fragment("max(?)", status.inserted_at),
+        order_by: status.effect_id,
+        select: %{effect_id: status.effect_id, status: status.status}
+
     query =
-      from es in EffectStatus,
-        select: es.effect_id,
-        where: es.status == ^:enabled,
-        distinct: es.effect_id
+      from effect in Effect,
+        join: status in subquery(status_subquery),
+        on: effect.id == status.effect_id,
+        select: {status.status, effect}
 
     Repo.all(query)
   end
