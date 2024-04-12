@@ -16,15 +16,24 @@ defmodule Mixery.Twitch.ChatHandler do
   alias Mixery.Repo
   alias Mixery.Twitch
   alias Mixery.Twitch.Message
+  alias Mixery.Twitch.User
   alias Mixery.ChatMessage
 
   # it's more common to grab all the variables from matching in the first line of the function like
   # %{"chatter_user_login" => user_login, "chatter_user_id" => user_id, "message" => %{"text" => text}} = event
   def handle_message(event) do
     user_id = event["chatter_user_id"]
-    user_login = event["chatter_user_login"]
-    user_display = event["chatter_user_name"]
-    user = Twitch.upsert_user(user_id, %{login: user_login, display: user_display})
+
+    user =
+      case Repo.get(User, user_id) do
+        nil ->
+          user_login = event["chatter_user_login"]
+          user_display = event["chatter_user_name"]
+          Twitch.upsert_user(%{id: user_id, login: user_login, display: user_display})
+
+        user ->
+          user
+      end
 
     text = event["message"]["text"]
     message = %Message{user: user, text: text, badges: parse_badges(event["badges"])}

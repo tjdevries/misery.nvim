@@ -31,7 +31,9 @@ defmodule Mixery.EffectHandler do
         }
         |> Repo.insert!()
 
+        # TODO: This maybe should always happen together?
         Mixery.broadcast_event(%Event.ExecuteEffect{effect: effect})
+        Mixery.Job.execute_event(effect.id)
 
         :ok
     end

@@ -7,4 +7,10 @@ defmodule Mixery.Twitch do
     |> User.changeset(attrs)
     |> Repo.insert!(returning: true, on_conflict: :replace_all)
   end
+
+  def upsert_user(attrs) do
+    %User{}
+    |> User.changeset(attrs)
+    |> Repo.insert!(returning: true, on_conflict: :replace_all)
+  end
 end

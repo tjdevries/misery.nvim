@@ -36,8 +36,8 @@ defmodule MixeryWeb.DashboardLive do
 
     effects =
       EffectStatusHandler.get_all_effect_statuses()
-      |> Enum.map(fn {enabled, effect} ->
-        %{enabled: enabled == :enabled, effect: effect}
+      |> Enum.map(fn {status, effect} ->
+        %{status: status, effect: effect}
       end)
       |> Enum.to_list()
       |> Enum.sort_by(& &1.effect.cost)
@@ -56,6 +56,7 @@ defmodule MixeryWeb.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.flash_group flash={@flash} />
     <div class="flex flex-col gap-4 text-sm w-full">
       <div class="text-center text-4xl"><%= @user.display %></div>
       <div class="text-center">Twitch ID: <%= @user.id %></div>
@@ -65,9 +66,9 @@ defmodule MixeryWeb.DashboardLive do
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 container mx-auto">
         <EffectComponent.card
-          :for={%{enabled: enabled, effect: effect} <- @effects}
-          :if={enabled and effect.cost > 0}
+          :for={%{status: status, effect: effect} <- @effects}
           balance={@balance}
+          status={status}
           effect={effect}
         />
       </div>
@@ -98,7 +99,7 @@ defmodule MixeryWeb.DashboardLive do
         socket.assigns.effects
         |> List.replace_at(
           index,
-          Enum.at(socket.assigns.effects, index) |> Map.put(:enabled, status)
+          Enum.at(socket.assigns.effects, index) |> Map.put(:status, status)
         )
       )
 
@@ -113,9 +114,17 @@ defmodule MixeryWeb.DashboardLive do
     effect = Repo.get!(Effect, effect_id)
 
     case Mixery.EffectHandler.execute(user, effect, input) do
-      :ok -> {:noreply, socket}
-      {:error, reason} -> {:noreply, socket}
+      :ok ->
+        Process.send_after(self(), :clear_flash, 5000)
+        {:noreply, socket |> put_flash(:info, "Successfully executed: '#{effect.id}'")}
+
+      {:error, reason} ->
+        {:noreply, socket |> put_flash(:error, reason)}
     end
+  end
+
+  def handle_info(:clear_flash, socket) do
+    {:noreply, clear_flash(socket)}
   end
 
   @impl true

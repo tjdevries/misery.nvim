@@ -22,7 +22,7 @@ defmodule Mixery.Twitch.User do
   @doc false
   def changeset(twitch_user, attrs \\ %{}) do
     twitch_user
-    |> cast(attrs, [:login, :display])
+    |> cast(attrs, [:id, :login, :display])
     |> validate_required([:id, :login, :display])
     |> unique_constraint([:id])
   end
