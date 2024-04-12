@@ -2,14 +2,6 @@ defmodule Mixery.Repo.Migrations.RemoveEffectsFromTwitchRewards do
   use Ecto.Migration
 
   def change do
-    drop index(:channel_rewards, [:key])
-
-    alter table(:channel_rewards) do
-      remove :key, :string
-      remove :enabled_on, :string
-      remove :coin_cost, :integer
-    end
-
     alter table(:redemption_ledger) do
       remove :key, :string
     end

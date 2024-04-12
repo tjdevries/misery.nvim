@@ -3,9 +3,7 @@ defmodule Mix.Tasks.CreateRewards do
   @shortdoc "Echoes arguments"
   use Mix.Task
 
-  import Ecto.Query
   alias Mixery.Repo
-
   alias Mixery.Twitch.ChannelReward
 
   @requirements ["app.config", "app.start"]
@@ -25,18 +23,17 @@ defmodule Mix.Tasks.CreateRewards do
       |> TwitchAPI.Auth.put_access_token(access_token)
 
     broadcaster_id = "114257969"
-    timeout_minute = 1
 
     rewards = [
       # Teej Coin Related
       %{
-        key: "garner-10-teej-coins",
+        id: "garner-10-teej-coins",
         title: "Get Ten (10) Teej Coins",
         prompt: "Garner 10 Teej Coins via Channel Points. NOTE THIS IS NOT A CURRENCY.",
         twitch_reward_cost: 9950
       },
       %{
-        key: "garner-teej-coins",
+        id: "garner-teej-coins",
         title: "Get a Teej Coin",
         prompt: "Garner a Teej Coin via Channel Points. NOTE THIS IS NOT A CURRENCY.",
         twitch_reward_cost: 1000
@@ -44,12 +41,7 @@ defmodule Mix.Tasks.CreateRewards do
     ]
 
     Enum.each(rewards, fn new_reward ->
-      query =
-        from reward in ChannelReward,
-          where: reward.key == ^new_reward[:key],
-          limit: 1
-
-      case Repo.one(query) do
+      case Repo.get(ChannelReward, new_reward.id) do
         nil ->
           create_new_reward(auth, broadcaster_id, new_reward)
 
@@ -74,7 +66,7 @@ defmodule Mix.Tasks.CreateRewards do
       |> Map.put(:twitch_reward_id, twitch_reward_id)
 
     case ChannelReward.changeset(%ChannelReward{}, params)
-         |> Repo.insert(on_conflict: :replace_all) do
+         |> Repo.insert(on_conflict: :replace_all, conflict_target: :id) do
       {:ok, channel_reward} ->
         IO.puts("updated channel reward: #{twitch_reward_id}")
         dbg(channel_reward)
@@ -88,7 +80,7 @@ defmodule Mix.Tasks.CreateRewards do
     dbg({:make_twitch_json, new_reward})
 
     twitch_json =
-      Map.drop(new_reward, [:key, :twitch_reward_cost])
+      Map.drop(new_reward, [:id, :twitch_reward_cost])
       |> Map.put(:is_enabled, false)
       |> Map.put(:cost, new_reward[:twitch_reward_cost])
 
@@ -133,7 +125,6 @@ defmodule Mix.Tasks.CreateRewards do
 
   def update_reward_on_twitch(auth, broadcaster_id, reward_id, new_reward) do
     # PATCH https://api.twitch.tv/helix/channel_points/custom_rewards
-    key = new_reward[:key]
     twitch_json = dbg(make_twitch_json(new_reward))
 
     case TwitchAPI.patch(auth, "/channel_points/custom_rewards",
@@ -147,14 +138,12 @@ defmodule Mix.Tasks.CreateRewards do
         twitch_reward_id
 
       {:error, req} ->
-        dbg({key, req})
+        dbg({new_reward.id, req})
         raise "couldnt do it"
     end
   end
 
   def create_new_reward(auth, broadcaster_id, new_reward) do
-    key = new_reward[:key]
-
     twitch_json = make_twitch_json(new_reward)
 
     twitch_reward_id =
@@ -166,7 +155,7 @@ defmodule Mix.Tasks.CreateRewards do
           twitch_reward_id
 
         {:error, req} ->
-          dbg({key, req})
+          dbg({new_reward.id, req})
           raise "couldnt do it"
       end
 
@@ -177,7 +166,7 @@ defmodule Mix.Tasks.CreateRewards do
       |> Map.put(:twitch_reward_id, twitch_reward_id)
 
     case ChannelReward.changeset(%ChannelReward{}, params)
-         |> Repo.insert(on_conflict: :replace_all) do
+         |> Repo.insert(on_conflict: :replace_all, conflict_target: :id) do
       {:ok, channel_reward} ->
         IO.puts("created new channel_reward: #{twitch_reward_id}")
         dbg(channel_reward)

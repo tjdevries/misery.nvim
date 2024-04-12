@@ -130,11 +130,11 @@ defmodule Mixery.Twitch.ApiHandler do
   @impl true
   def handle_info(%Event.Reward{redemption: redemption, status: :fulfilled}, state) do
     case redemption.reward do
-      %ChannelReward{key: "garner-teej-coins"} ->
-        Coin.insert(redemption.user, 1, redemption.reward.key)
+      %ChannelReward{id: "garner-teej-coins"} ->
+        Coin.insert(redemption.user, 1, redemption.reward.id)
 
-      %ChannelReward{key: "garner-10-teej-coins"} ->
-        Coin.insert(redemption.user, 10, redemption.reward.key)
+      %ChannelReward{id: "garner-10-teej-coins"} ->
+        Coin.insert(redemption.user, 10, redemption.reward.id)
 
       _ ->
         nil

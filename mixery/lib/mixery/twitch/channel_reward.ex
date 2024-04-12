@@ -6,7 +6,6 @@ defmodule Mixery.Twitch.ChannelReward do
 
   @type t :: %__MODULE__{
           id: String.t(),
-          key: String.t(),
           twitch_reward_id: String.t(),
           twitch_reward_cost: pos_integer(),
           title: String.t(),
@@ -19,8 +18,8 @@ defmodule Mixery.Twitch.ChannelReward do
           updated_at: DateTime.t()
         }
 
+  @primary_key {:id, :string, []}
   schema "channel_rewards" do
-    field :key, :string
     field :twitch_reward_id, :string
     field :twitch_reward_cost, :integer
     field :title, :string
@@ -38,7 +37,7 @@ defmodule Mixery.Twitch.ChannelReward do
   def changeset(channel_reward, attrs) do
     channel_reward
     |> cast(attrs, [
-      :key,
+      :id,
       :twitch_reward_id,
       :twitch_reward_cost,
       :title,
@@ -49,7 +48,7 @@ defmodule Mixery.Twitch.ChannelReward do
       :is_user_input_required
     ])
     |> validate_required([
-      :key,
+      :id,
       :twitch_reward_id,
       :twitch_reward_cost,
       :title,

@@ -20,40 +20,59 @@ defmodule MixeryWeb.DashboardLive do
     end
 
     twitch_id = socket.assigns.current_twitch
-    user = Repo.get!(User, twitch_id)
 
-    balance =
-      case Coin.balance(user).amount do
-        nil -> 0
-        amount -> amount
-      end
+    case Repo.get(User, twitch_id) do
+      nil ->
+        socket =
+          socket
+          |> assign(user: nil)
+          |> assign(display: nil)
+          |> assign(balance: 0)
+          |> assign(gross: 0)
+          |> assign(effects: [])
 
-    gross =
-      case Coin.gross(user).amount do
-        nil -> 0
-        amount -> amount
-      end
+        {:ok, socket}
 
-    effects =
-      EffectStatusHandler.get_all_effect_statuses()
-      |> Enum.map(fn {status, effect} ->
-        %{status: status, effect: effect}
-      end)
-      |> Enum.to_list()
-      |> Enum.sort_by(& &1.effect.cost)
+      user ->
+        balance =
+          case Coin.balance(user).amount do
+            nil -> 0
+            amount -> amount
+          end
 
-    socket =
-      socket
-      |> assign(user: user)
-      |> assign(display: user.display)
-      |> assign(balance: balance)
-      |> assign(gross: gross)
-      |> assign(effects: effects)
+        gross =
+          case Coin.gross(user).amount do
+            nil -> 0
+            amount -> amount
+          end
 
-    {:ok, socket}
+        effects =
+          EffectStatusHandler.get_all_effect_statuses()
+          |> Enum.map(fn {status, effect} ->
+            %{status: status, effect: effect}
+          end)
+          |> Enum.to_list()
+          |> Enum.sort_by(& &1.effect.cost)
+
+        socket =
+          socket
+          |> assign(user: user)
+          |> assign(display: user.display)
+          |> assign(balance: balance)
+          |> assign(gross: gross)
+          |> assign(effects: effects)
+
+        {:ok, socket}
+    end
   end
 
   @impl true
+  def render(%{user: nil} = assigns) do
+    ~H"""
+    Send a chat message or something, to make sure this is workin
+    """
+  end
+
   def render(assigns) do
     ~H"""
     <.flash_group flash={@flash} />
@@ -93,15 +112,21 @@ defmodule MixeryWeb.DashboardLive do
       Enum.find_index(socket.assigns.effects, fn %{effect: e} -> e.id == effect.id end)
 
     socket =
-      assign(
-        socket,
-        :effects,
-        socket.assigns.effects
-        |> List.replace_at(
-          index,
-          Enum.at(socket.assigns.effects, index) |> Map.put(:status, status)
-        )
-      )
+      case index do
+        nil ->
+          socket
+
+        index ->
+          assign(
+            socket,
+            :effects,
+            socket.assigns.effects
+            |> List.replace_at(
+              index,
+              Enum.at(socket.assigns.effects, index) |> Map.put(:status, status)
+            )
+          )
+      end
 
     # item.enabled = status
     # socket = assign(socket, :effects, socket.assigns.effects |> List.

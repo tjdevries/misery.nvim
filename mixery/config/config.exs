@@ -58,6 +58,15 @@ config :phoenix, :json_library, Jason
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
 
+config :mixery, Mixery.Repo,
+  database: "mixery",
+  username: "tjdevries",
+  password: "password",
+  hostname: "localhost"
+
+# migration_primary_key: [type: :string],
+# migration_foreign_key: [type: :string]
+
 config :mixery, Oban,
   engine: Oban.Engines.Lite,
   queues: [default: 10],

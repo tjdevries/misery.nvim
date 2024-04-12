@@ -43,14 +43,14 @@ defmodule Mixery.EffectStatusHandler do
 
   @impl true
   def handle_info(%Event.NeovimConnection{connections: [] = connections}, state) do
-    emit_neovim_statuses(false)
+    emit_neovim_statuses(:disabled)
     {:noreply, state |> Map.put(:connections, connections)}
   end
 
   @impl true
   def handle_info(%Event.NeovimConnection{connections: connections}, state) do
     case state[:connections] do
-      [] -> emit_neovim_statuses(true)
+      [] -> emit_neovim_statuses(:enabled)
       _ -> nil
     end
 
@@ -58,12 +58,37 @@ defmodule Mixery.EffectStatusHandler do
   end
 
   def get_all_effect_statuses() do
+    # status_subquery =
+    #   from status in EffectStatus,
+    #     group_by: status.effect_id,
+    #     having: status.inserted_at == fragment("max(?)", status.inserted_at),
+    #     order_by: status.effect_id,
+    #     select: %{effect_id: status.effect_id, status: status.status}
+
     status_subquery =
       from status in EffectStatus,
-        group_by: status.effect_id,
-        having: fragment("max(?)", status.inserted_at),
-        order_by: status.effect_id,
+        as: :status,
+        where:
+          not exists(
+            from s in EffectStatus,
+              where:
+                parent_as(:status).effect_id == s.effect_id and
+                  parent_as(:status).inserted_at < s.inserted_at
+          ),
         select: %{effect_id: status.effect_id, status: status.status}
+
+    # status_subquery =
+    #   from status in EffectStatus,
+    #     as: :status,
+    #     where:
+    #       not exists(
+    #         from(s in EffectStatus,
+    #           where:
+    #             parent_as(:status).effect_id == s.effect_id and
+    #               parent_as(:status).inserted_at < s.inserted_at
+    #         ),
+    #         select: %{effect_id: status.effect_id, status: status.status}
+    #       )
 
     query =
       from effect in Effect,
@@ -83,6 +108,10 @@ defmodule Mixery.EffectStatusHandler do
     |> Repo.all()
     |> Enum.each(fn effect ->
       Mixery.broadcast_event(%Event.EffectStatusUpdate{effect: effect, status: status})
+
+      %EffectStatus{effect_id: effect.id, status: status}
+      |> EffectStatus.changeset(%{})
+      |> Repo.insert!()
     end)
   end
 end

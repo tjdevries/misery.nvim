@@ -16,9 +16,9 @@ defmodule Mixery.Twitch.EventSubHandler do
     user_id = event["user_id"]
     user_login = event["user_login"]
     user_display = event["user_name"]
-    dbg(Twitch.get_or_upsert_user(dbg(user_id), %{login: user_login, display: user_display}))
+    Twitch.upsert_user(user_id, %{login: user_login, display: user_display})
 
-    redemption = dbg(Redemption.from_event(event))
+    redemption = Redemption.from_event(event)
 
     case redemption.reward do
       %{} = reward ->
@@ -132,29 +132,4 @@ defmodule Mixery.Twitch.EventSubHandler do
   def handle_chat_notification(_notice_type, event) do
     Logger.info("Unhandled chat.notification: #{inspect(event)}")
   end
-
-  # DEPRECATED {{{
-  # @impl true
-  # def handle_event("channel.subscription.gift", event) do
-  #   dbg({"channel.subscription.gift", event})
-  #
-  #   user_id = event["user_id"]
-  #   user_login = event["user_login"]
-  #   user = Twitch.upsert_user(user_id, %{login: user_login})
-  #
-  #   gift_params = %{
-  #     "id" => "testing",
-  #     "total" => event["total"],
-  #     "sub_tier" => event["tier"]
-  #   }
-  #
-  #   GiftSub.from_community_sub_gift(user, gift_params)
-  #   |> Mixery.broadcast_event()
-  # end
-  #
-  # @impl true
-  # def handle_event("channel.subscription.message", event) do
-  #   dbg({"channel.subscription.message", event})
-  # end
-  # }}}
 end

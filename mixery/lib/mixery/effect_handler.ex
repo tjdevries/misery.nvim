@@ -33,7 +33,7 @@ defmodule Mixery.EffectHandler do
 
         # TODO: This maybe should always happen together?
         Mixery.broadcast_event(%Event.ExecuteEffect{effect: effect})
-        Mixery.Job.execute_event(effect.id)
+        Mixery.Job.execute_event(user.id, effect.id)
 
         :ok
     end

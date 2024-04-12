@@ -7,6 +7,7 @@ defmodule Mix.Tasks.CreateEffects do
   alias Mixery.Repo
 
   alias Mixery.Effect
+  alias Mixery.EffectStatus
 
   @requirements ["app.config", "app.start"]
 
@@ -255,7 +256,10 @@ defmodule Mix.Tasks.CreateEffects do
       dbg(effect)
 
       effect
-      |> Repo.insert!()
+      |> Repo.insert!(on_conflict: :replace_all, conflict_target: :id)
+
+      if effect.enabled_on == :always,
+        do: %EffectStatus{effect_id: effect.id, status: :enabled} |> Repo.insert!()
     end)
   end
 end

@@ -49,7 +49,7 @@ defmodule Mixery.OBS.Handler do
       nil ->
         nil
 
-      %ChannelReward{key: "tablet-keyboard"} ->
+      %ChannelReward{id: "tablet-keyboard"} ->
         send_obs_message(:request, %{
           "requestType" => "SetCurrentProgramScene",
           "requestId" => Ecto.UUID.generate(),

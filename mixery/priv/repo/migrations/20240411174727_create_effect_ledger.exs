@@ -6,8 +6,8 @@ defmodule Mixery.Repo.Migrations.CreateEffectLedger do
       add :prompt, :string
       add :cost, :integer
       add :reason, :string
-      add :effect_id, references(:effects, on_delete: :nothing)
-      add :twitch_user_id, references(:twitch_users, on_delete: :nothing)
+      add :effect_id, references(:effects, type: :string, on_delete: :nothing)
+      add :twitch_user_id, references(:twitch_users, type: :string, on_delete: :nothing)
 
       timestamps(type: :utc_datetime)
     end

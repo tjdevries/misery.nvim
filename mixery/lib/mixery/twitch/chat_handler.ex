@@ -23,17 +23,9 @@ defmodule Mixery.Twitch.ChatHandler do
   # %{"chatter_user_login" => user_login, "chatter_user_id" => user_id, "message" => %{"text" => text}} = event
   def handle_message(event) do
     user_id = event["chatter_user_id"]
-
-    user =
-      case Repo.get(User, user_id) do
-        nil ->
-          user_login = event["chatter_user_login"]
-          user_display = event["chatter_user_name"]
-          Twitch.upsert_user(%{id: user_id, login: user_login, display: user_display})
-
-        user ->
-          user
-      end
+    user_login = event["chatter_user_login"]
+    user_display = event["chatter_user_name"]
+    user = Twitch.upsert_user(user_id, %{login: user_login, display: user_display})
 
     text = event["message"]["text"]
     message = %Message{user: user, text: text, badges: parse_badges(event["badges"])}
