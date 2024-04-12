@@ -23,33 +23,21 @@ defmodule Mixery.EffectStatusHandler do
     Effect
     |> Repo.all()
     |> Enum.each(fn effect ->
-      %EffectStatus{
-        effect_id: effect.id,
-        status:
-          case effect.enabled_on do
-            :always -> :enabled
-            :rewrite -> :disabled
-            :neovim -> :disabled
-            :never -> :disabled
-          end
-      }
-      |> EffectStatus.changeset(%{})
-      |> Repo.insert!()
+      case effect.enabled_on do
+        :never ->
+          %EffectStatus{
+            effect_id: effect.id,
+            status: :disabled
+          }
+          |> EffectStatus.changeset(%{})
+          |> Repo.insert!()
+
+        _ ->
+          nil
+      end
     end)
 
-    statuses =
-      Effect
-      |> Repo.all()
-      |> Map.new(fn effect ->
-        case effect.enabled_on do
-          :always -> {effect.id, {true, effect}}
-          :rewrite -> {effect.id, {false, effect}}
-          :neovim -> {effect.id, {false, effect}}
-          :never -> {effect.id, {false, effect}}
-        end
-      end)
-
-    state = %{connections: [], statuses: statuses}
+    state = %{connections: []}
     {:ok, state}
   end
 
@@ -81,32 +69,6 @@ defmodule Mixery.EffectStatusHandler do
   end
 
   def get_all_effect_statuses() do
-    # query =
-    #   from es in EffectStatus,
-    #     select: es.effect_id,
-    #     where: es.status == ^:enabled,
-    #     distinct: true
-    # join: c in Comment, on: c.post_id == p.id
-    # query =
-    #   from [e, s] in EffectStatus,
-    #     join: s in assoc(e, :effect_status)
-
-    # # Create a query
-    # query = from p in Post,
-    #           join: c in Comment, on: c.post_id == p.id
-    #
-    # # Extend the query
-    # query = from [p, c] in query,
-    #           select: {p.title, c.body}
-
-    # select effects.id, current_status.id, current_status.status from effects
-    #   inner join (
-    #   select id, effect_id, status
-    #     from effect_status
-    #     group by effect_id having max(inserted_at)
-    #     order by effect_id)
-    #   as current_status on current_status.effect_id = effects.id
-    #
     status_subquery =
       from status in EffectStatus,
         group_by: status.effect_id,

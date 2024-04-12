@@ -170,7 +170,7 @@ defmodule MixeryWeb.TwitchAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
-  defp signed_in_path(_conn), do: ~p"/"
+  defp signed_in_path(_conn), do: ~p"/dashboard"
 
   def delete(conn, _params) do
     log_out_twitch(conn)

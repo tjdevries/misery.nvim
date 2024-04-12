@@ -8,7 +8,12 @@ defmodule MixeryWeb.EffectComponent do
   attr :status, :atom, required: true
   attr :effect, Effect, required: true
 
-  def card(%{balance: balance, status: status, effect: %{cost: cost}} = assigns) do
+  def card(%{balance: balance, status: status, effect: %{id: effect_id, cost: cost}} = assigns) do
+    case effect_id do
+      "marimba" -> dbg({:marimba, balance, status, cost})
+      _ -> nil
+    end
+
     can_afford = balance >= cost
 
     ~H"""

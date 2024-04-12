@@ -54,4 +54,13 @@ defmodule Mixery.Neovim.Connections do
 
     {:noreply, %{state | connections: connections}}
   end
+
+  @impl true
+  def handle_call(:has_active_connections, _from, state) do
+    {:reply, state.connections != [], state}
+  end
+
+  def connected?() do
+    GenServer.call(__MODULE__, :has_active_connections)
+  end
 end

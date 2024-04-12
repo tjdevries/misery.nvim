@@ -174,7 +174,10 @@ defmodule Mixery.Twitch.ChatHandler do
   defp handle_chat_message(%Message{text: text}) do
     text = String.downcase(text)
 
-    if (String.contains?(text, "what font") or String.contains?(text, "font?")) and
+    # TODO: Think about switching between berkeley mono and jetbrains mono everytime
+    # someone asks about this just to gaslight them into thinking they can't see the difference
+    # between the two all the time.
+    if (String.match?(text, ~r/wh(at|ich) font/) or String.contains?(text, "font?")) and
          not String.contains?(text, "pasta"),
        do:
          Mixery.broadcast_event(%Event.SendChat{
