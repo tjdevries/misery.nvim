@@ -43,29 +43,18 @@ defmodule Mixery.EffectStatusHandler do
 
   @impl true
   def handle_info(%Event.NeovimConnection{connections: [] = connections}, state) do
-    state = emit_neovim_statuses(state, false)
+    emit_neovim_statuses(false)
     {:noreply, state |> Map.put(:connections, connections)}
   end
 
   @impl true
   def handle_info(%Event.NeovimConnection{connections: connections}, state) do
-    state =
-      case state[:connections] do
-        [] -> emit_neovim_statuses(state, true)
-        _ -> state
-      end
+    case state[:connections] do
+      [] -> emit_neovim_statuses(true)
+      _ -> nil
+    end
 
     {:noreply, state |> Map.put(:connections, connections)}
-  end
-
-  @impl true
-  def handle_call({:effect_status, effect_id}, _from, state) do
-    {:reply, state.statuses[effect_id], state}
-  end
-
-  @impl true
-  def handle_call(:effect_statuses, _from, state) do
-    {:reply, state.statuses, state}
   end
 
   def get_all_effect_statuses() do
@@ -85,19 +74,15 @@ defmodule Mixery.EffectStatusHandler do
     Repo.all(query)
   end
 
-  defp emit_neovim_statuses(state, status) do
+  defp emit_neovim_statuses(status) do
     query =
       from eff in Effect,
         where: eff.enabled_on == ^:neovim or (^@rewrite_enabled and eff.enabled_on == ^:rewrite)
 
-    statuses =
-      query
-      |> Repo.all()
-      |> Enum.reduce(state.statuses, fn effect, statuses ->
-        Mixery.broadcast_event(%Event.EffectStatusUpdate{effect: effect, status: status})
-        Map.put(statuses, effect.id, {status, effect})
-      end)
-
-    state |> Map.put(:statuses, statuses)
+    query
+    |> Repo.all()
+    |> Enum.each(fn effect ->
+      Mixery.broadcast_event(%Event.EffectStatusUpdate{effect: effect, status: status})
+    end)
   end
 end

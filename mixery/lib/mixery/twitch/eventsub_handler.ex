@@ -18,7 +18,7 @@ defmodule Mixery.Twitch.EventSubHandler do
     user_display = event["user_name"]
     dbg(Twitch.get_or_upsert_user(dbg(user_id), %{login: user_login, display: user_display}))
 
-    redemption = Redemption.from_event(event)
+    redemption = dbg(Redemption.from_event(event))
 
     case redemption.reward do
       %{} = reward ->
