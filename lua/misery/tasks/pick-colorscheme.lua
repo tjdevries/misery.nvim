@@ -17,7 +17,8 @@ local create = function(opts, callback)
         return vim.fn.fnamemodify(colorscheme, ":t:r")
       end, colorschemes)
 
-      local colorscheme = opts.colorscheme or opts.user_input
+      print(vim.inspect { task = "colorscheme", opts = opts })
+      local colorscheme = opts.colorscheme or opts.input
       self.state.colorscheme = colorscheme
       if not vim.tbl_contains(colorschemes, colorscheme) then
         self.state.bad_colorscheme = true

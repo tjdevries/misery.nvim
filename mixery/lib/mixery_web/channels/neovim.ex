@@ -45,8 +45,8 @@ defmodule MixeryWeb.Channel.Neovim do
   end
 
   @impl true
-  def handle_info(%Event.ExecuteEffect{effect: effect}, socket) do
-    broadcast(socket, effect.id, effect)
+  def handle_info(%Event.ExecuteEffect{effect: effect} = event, socket) do
+    broadcast(socket, effect.id, event)
     {:noreply, socket}
   end
 

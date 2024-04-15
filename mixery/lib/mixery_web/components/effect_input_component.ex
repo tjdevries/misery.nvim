@@ -6,6 +6,7 @@ defmodule MixeryWeb.EffectInputComponent do
     ~H"""
     <div>
       <form class="text-black" phx-target={@myself} phx-submit="save" phx-change="change">
+        <div><%= @input %></div>
         <input name="user_input" type="text" value={@input} />
       </form>
     </div>
@@ -23,7 +24,7 @@ defmodule MixeryWeb.EffectInputComponent do
   end
 
   def handle_event("save", _, socket) do
-    send(self(), {:redeemed, socket.assigns.effect_id, socket.assigns.input})
+    send(self(), {:execute_effect, socket.assigns.effect_id, socket.assigns.input})
     {:noreply, socket}
   end
 end

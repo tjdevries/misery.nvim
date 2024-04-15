@@ -71,28 +71,4 @@ defmodule MixeryWeb.EffectComponent do
     </div>
     """
   end
-
-  # def button(assigns) do
-  #   ~H"""
-  #   <div class="text-center">
-  #     <CoreComponents.button disabled class=" disabled:bg-red-700 cursor-not-allowed opacity-50">
-  #       <%= @effect.id %>: <%= @effect.key %>. Costs: <%= @effect.cost %> coins
-  #     </CoreComponents.button>
-  #   </div>
-  #   """
-  # end
-
-  # do
-  #   ~H"""
-  #   <p><%= @balance %> <%= @effect.key %></p>
-  #   """
-  # end
-
-  # <div :if={enabled and effect.cost <= @balance and effect.cost != 0}>
-  #   <div phx-click="redeem" phx-value-effect-id={effect_id} class="text-center">
-  #     <.button disabled>
-  #       <%= effect_id %>: <%= effect.key %>. Costs: <%= effect.cost %> coins
-  #     </.button>
-  #   </div>
-  # </div>
 end

@@ -46,6 +46,8 @@ socket:add_on_message(vim.schedule_wrap(function(frame)
     return
   end
 
+  print(vim.inspect { name = name, args = args })
+
   local name = string.format("misery.tasks.%s", name)
   local ok, task = pcall(require, name)
   if ok then
