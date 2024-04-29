@@ -39,8 +39,9 @@ defmodule Mixery.Twitch.ChatHandler do
     message = %Message{user: user, text: text, badges: parse_badges(event["badges"])}
 
     query =
-      from c in ChatMessage,
+      from(c in ChatMessage,
         where: c.twitch_user_id == ^user.id and fragment("date(?) >= CURRENT_DATE", c.updated_at)
+      )
 
     is_first_message_today = not Repo.exists?(query)
 
@@ -115,6 +116,10 @@ defmodule Mixery.Twitch.ChatHandler do
   end
 
   defp handle_command(%Message{text: "teejdvFocus" <> _, user: %{display: "wagslane"}}) do
+    Mixery.broadcast_event(%Event.PlayVideo{video_url: "/images/focused.webm", length_ms: 6000})
+  end
+
+  defp handle_command(%Message{text: "teejdvFocus" <> _, user: %{display: "j0nny_dev"}}) do
     Mixery.broadcast_event(%Event.PlayVideo{video_url: "/images/focused.webm", length_ms: 6000})
   end
 

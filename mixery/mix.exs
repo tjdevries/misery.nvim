@@ -65,7 +65,7 @@ defmodule Mixery.MixProject do
 
       # Chat said this one was amazing and i'll have literally zero issues
       # {:mint_web_socket, "~> 1.0.0"},
-      # ShyRyan said this one was amazing and way better than anything he could write (duh, talk about being redundant)
+      # RyanWinchester_TV: said this one was amazing and way better than anything he could write (duh, talk about being redundant)
       {:fresh, "~> 0.4.3"},
       {:websockex, "~> 0.4.3"},
       # Audio shenanigans

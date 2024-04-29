@@ -22,7 +22,7 @@ defmodule MixeryWeb.Channel.Neovim do
       end
 
     if authorized?(payload) do
-      {:ok, %{reason: "ShyRyan is a liar liar pants on fire"}, socket}
+      {:ok, %{reason: "RyanWinchester_TV: is a liar liar pants on fire"}, socket}
     else
       {:error, %{reason: "unauthorized"}}
     end
