@@ -8,7 +8,7 @@ defmodule MixeryWeb.EffectComponent do
   attr :status, :atom, required: true
   attr :effect, Effect, required: true
 
-  def card(%{balance: balance, status: status, effect: %{id: effect_id, cost: cost}} = assigns) do
+  def card(%{balance: balance, status: status, effect: %{id: _, cost: cost}} = assigns) do
     can_afford = balance >= cost
 
     ~H"""
@@ -27,6 +27,7 @@ defmodule MixeryWeb.EffectComponent do
               id={"effect-#{@effect.id}"}
               module={MixeryWeb.EffectInputComponent}
               effect_id={@effect.id}
+              cost={@effect.cost}
               input=""
             />
           <% else %>

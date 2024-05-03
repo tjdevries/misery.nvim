@@ -1,6 +1,6 @@
 return require("misery.task").make_task {
   name = "Hidden Cursor",
-  timeout = 60 * 1000,
+  timeout = 15 * 1000,
   start = function()
     vim.cmd [[set guicursor=n-v:hor01-Normal]]
     vim.opt.cursorline = false

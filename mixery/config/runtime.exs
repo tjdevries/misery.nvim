@@ -112,17 +112,6 @@ if config_env() == :prod do
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
 
-twitch_access_token =
-  case config_env() do
-    :prod ->
-      System.fetch_env!("TWITCH_ACCESS_TOKEN")
-
-    _dev_or_test ->
-      File.read!(".twitch.json")
-      |> Jason.decode!()
-      |> Map.fetch!("access_token")
-  end
-
 config :mixery,
   obs: [
     uri: "ws://192.168.4.121:4455"
@@ -134,9 +123,9 @@ config :mixery,
     user_id: System.fetch_env!("TWITCH_USER_ID"),
     channel_ids: [System.fetch_env!("TWITCH_CHANNEL_ID")],
     handler: Mixery.Twitch.EventSubHandler,
+    auth_store_name: Mixery.Twitch.AuthStore,
     client_id: System.fetch_env!("TWITCH_CLIENT_ID"),
     client_secret: System.fetch_env!("TWITCH_CLIENT_SECRET"),
-    access_token: twitch_access_token,
     subscriptions: ~w[
       channel.chat.message channel.chat.notification
       channel.ad_break.begin channel.cheer channel.follow channel.subscription.end

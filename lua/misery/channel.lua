@@ -1,88 +1,161 @@
-pcall(require "misery.scheduler", stop)
-
-_ = R "misery.scheduler"
-_ = R "websocket"
-
-local scheduler = require "misery.scheduler"
-scheduler.start()
-
 local Websocket = require("websocket").Websocket
 
----@diagnostic disable-next-line: missing-fields
-local socket = Websocket:new {
-  host = "127.0.0.1",
-  port = 4000,
-  path = "/nvim/websocket?vsn=2.0.0",
-}
+local scheduler = require "misery.scheduler"
 
----@class mixery.ChannelReward
----@field reward_id string
----@field key string
+---@class mixery.Effect
+---@field id string
 ---@field title string
 ---@field prompt string
 
----@class mixery.RewardRedemption
----@field user_id string
----@field user_login string
----@field user_input string
----@field reward mixery.ChannelReward
+---@class mixery.User
+---@field id string
+---@field login string
+---@field display string
 
-socket:add_on_message(vim.schedule_wrap(function(frame)
-  local payload = vim.json.decode(frame.payload)
+---@class mixery.ExecuteEffect
+---@field id string
+---@field user mixery.User
+---@field effect mixery.Effect
+---@field input string|nil
 
-  ---@type string
-  local name = payload[4]
+local M = {}
 
-  ---@type mixery.RewardRedemption
-  local args = payload[5]
+local socket
 
-  if name == "phx_reply" then
-    print "phx_reply"
-    return
-  end
+local response_handlers = {}
 
-  if name == "phx_error" then
-    print(string.format("phx_error: %s", vim.inspect(payload[5])))
-    return
-  end
+local message_count = 0
+local pid = vim.fn.getpid()
 
-  print(vim.inspect { name = name, args = args })
+local send_message = function(topic_name, event_name, payload)
+  message_count = message_count + 1
+  payload = payload or vim.empty_dict()
 
-  local name = string.format("misery.tasks.%s", name)
-  local ok, task = pcall(require, name)
-  if ok then
-    task(args, scheduler.add_task)
-  else
-    print(string.format("No task found for %s", name or ""))
-  end
-end))
-
-socket:add_on_connect(vim.schedule_wrap(function()
-  print "CONNECTED"
+  local message_id = string.format("neovim:%s:%s", pid, message_count)
 
   -- [join_reference, message_reference, topic_name, event_name, payload]
-  -- ["0", "0", "miami:weather", "phx_join", {"some": "param"}]
   socket:send_text(vim.json.encode {
-    "0",
-    "0",
-    "neovim:lobby",
-    "phx_join",
-    -- { name = string.format("neovim:%s", vim.fn.getpid()) },
-    {},
+    string.format("neovim:%s", pid),
+    message_id,
+    topic_name,
+    event_name,
+    payload,
   })
-end))
 
-socket:add_on_close(vim.schedule_wrap(function()
-  print "==== OH NO, WE HAVE CLOSED THE CONNECTION ===="
+  return message_id
+end
 
-  vim.defer_fn(function()
-    socket = Websocket:new {
-      host = "127.0.0.1",
-      port = 4000,
-      path = "/nvim/websocket?vsn=2.0.0",
-    }
-    socket:connect()
-  end, 1000)
-end))
+local send_heartbeat = function()
+  -- [null, "2", "phoenix", "heartbeat", {}]
+  local message_id = send_message("phoenix", "heartbeat")
 
-socket:connect()
+  response_handlers[message_id] = function(payload)
+    if payload.status ~= "ok" then
+      vim.notify(string.format("[misery] Failed to get heartbeat back\n%s", vim.inspect(payload)))
+    end
+  end
+end
+
+local heartbeat_timer = vim.uv.new_timer()
+M.start = function()
+  scheduler.start()
+
+  ---@diagnostic disable-next-line: missing-fields
+  socket = Websocket:new {
+    host = "127.0.0.1",
+    port = 4000,
+    path = "/nvim/websocket?vsn=2.0.0",
+  }
+
+  socket:add_on_connect(vim.schedule_wrap(function()
+    print "[mixery] connected to mixery.nvim"
+
+    local message_reference = send_message("neovim:lobby", "phx_join", {
+      colorschemes = vim.fn.getcompletion("", "color"),
+    })
+
+    --- Handle the join response, which may contain tasks to execute
+    response_handlers[message_reference] = function(payload)
+      local queued = payload.response.queued
+      for _, execution in ipairs(queued) do
+        ---@type mixery.ExecuteEffect
+        execution = execution
+
+        local name = string.format("misery.tasks.%s", execution.effect.id)
+        local ok, task = pcall(require, name)
+        if ok then
+          task(execution, scheduler.add_task)
+        else
+          print(string.format("No task found for %s", name or ""))
+        end
+      end
+    end
+
+    -- Start heartbeat so we don't drop the connection, if no messages in 10 seconds
+    heartbeat_timer:stop()
+    heartbeat_timer:start(1 * 1000, 10 * 1000, function()
+      send_heartbeat()
+    end)
+  end))
+
+  socket:add_on_message(vim.schedule_wrap(function(frame)
+    local payload = vim.json.decode(frame.payload)
+
+    ---@type string
+    local message_reference = payload[2]
+
+    ---@type string
+    local name = payload[4]
+
+    ---@type mixery.ExecuteEffect
+    local args = payload[5]
+
+    if name == "phx_reply" then
+      local handler = response_handlers[message_reference]
+      if handler then
+        response_handlers[message_reference] = nil
+        handler(args)
+        return
+      end
+
+      print("unhandled phx_reply:", vim.inspect(payload))
+      return
+    end
+
+    if name == "phx_error" then
+      print(string.format("phx_error: %s", vim.inspect(payload[5])))
+      return
+    end
+
+    -- print(vim.inspect { name = name, args = args })
+
+    name = string.format("misery.tasks.%s", name)
+    local ok, task = pcall(require, name)
+    if ok then
+      task(args, scheduler.add_task)
+    else
+      print(string.format("No task found for %s", name or ""))
+    end
+  end))
+
+  socket:add_on_close(vim.schedule_wrap(function()
+    print "==== OH NO, WE HAVE CLOSED THE CONNECTION ===="
+
+    vim.defer_fn(function()
+      socket = Websocket:new {
+        host = "127.0.0.1",
+        port = 4000,
+        path = "/nvim/websocket?vsn=2.0.0",
+      }
+      socket:connect()
+    end, 100)
+  end))
+
+  socket:connect()
+end
+
+M.send_effect_completed = function(execution_id)
+  send_message("neovim:lobby", "effect_execution_completed", { execution_id = execution_id })
+end
+
+return M

@@ -14,13 +14,10 @@ defmodule Mix.Tasks.CreateRewards do
 
     {:ok, _} = Application.ensure_all_started(:req)
 
-    opts = Application.fetch_env!(:mixery, :event_sub)
-    {client_id, opts} = Keyword.pop!(opts, :client_id)
-    {access_token, _} = Keyword.pop!(opts, :access_token)
+    # opts = Application.fetch_env!(:mixery, :event_sub)
+    # {client_id, opts} = Keyword.pop!(opts, :client_id)
 
-    auth =
-      TwitchAPI.Auth.new(client_id)
-      |> TwitchAPI.Auth.put_access_token(access_token)
+    auth = TwitchAPI.AuthStore.get(Mixery.Twitch.AuthStore)
 
     broadcaster_id = "114257969"
 

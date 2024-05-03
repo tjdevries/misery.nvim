@@ -121,33 +121,6 @@ defmodule Mixery.Job do
     end
   end
 
-  defp max_per_stream_effect(effect, max_per_stream) do
-    query =
-      from e in EffectLedger,
-        where: e.effect_id == ^effect.id and fragment("date(?) >= CURRENT_DATE", e.inserted_at)
-
-    exexcuted_today = dbg(Repo.aggregate(query, :count, :id))
-
-    if exexcuted_today >= max_per_stream do
-      # TODO: This should be not actually scheduled for this, but for the next time we stream...
-      #       BUT LOL I DONT CARE FOR NOW
-      datetime = DateTime.new!(Date.utc_today() |> Date.add(1), ~T[00:00:00], "Etc/UTC")
-
-      %{id: "enable-status", effect_id: effect.id}
-      |> new(scheduled_at: datetime)
-      |> Oban.insert!()
-
-      %EffectStatus{
-        effect_id: effect.id,
-        status: :timeout
-      }
-      |> EffectStatus.changeset(%{})
-      |> Repo.insert!()
-
-      Mixery.broadcast_event(%Event.EffectStatusUpdate{effect: effect, status: :timeout})
-    end
-  end
-
   defp max_per_user_per_stream_effect(effect, user_id, max_per_stream) do
     query =
       from e in EffectLedger,

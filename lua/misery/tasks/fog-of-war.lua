@@ -46,7 +46,7 @@ end
 local create = function(opts, callback)
   opts = opts or {}
 
-  local timeout = opts.timeout or (60 * 1000)
+  local timeout = opts.timeout or (20 * 1000)
 
   callback(Task.new {
     args = opts,

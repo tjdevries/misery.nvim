@@ -7,12 +7,13 @@ defmodule Mixery.Server do
   alias Mixery.Event
   alias Mixery.Event.Subscription
   alias Mixery.Repo
-  alias Mixery.Media.Playerctl
+  alias Mixery.Twitch.Message
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  @impl GenServer
   def init(args) do
     Mixery.subscribe_to_reward_events()
     Mixery.subscribe_to_sub_events()
@@ -21,6 +22,7 @@ defmodule Mixery.Server do
     {:ok, args}
   end
 
+  @impl true
   def handle_info(%Subscription.GiftSubscription{} = gift_sub, state) do
     Logger.info("[Server] got gift subscription event: #{inspect(gift_sub)}")
 
@@ -52,35 +54,41 @@ defmodule Mixery.Server do
   end
 
   def handle_info(
-        %Event.Chat{user: %{login: "piq9117", id: id}, is_first_message_today: true},
+        %Event.Chat{
+          user: %Mixery.Twitch.User{id: id} = user,
+          message: %Message{
+            badges: %Mixery.Twitch.UserBadges{
+              subscriber: subscriber,
+              moderator: moderator,
+              vip: vip
+            }
+          }
+        },
         state
-      ) do
-    themesong = Repo.get_by!(Mixery.Themesong, twitch_user_id: id)
-    status = Playerctl.status()
+      )
+      when subscriber or moderator or vip do
+    dbg({:handling_sub_message, id})
 
-    case status do
-      :playing ->
-        Task.start(fn ->
-          # Pause my music
-          Playerctl.pause()
+    # Coin.insert(user, Coin.calculate(message), "chat")
+    if not Mixery.ThemesongLedger.has_played_themesong_today(id) do
+      # TODO: Check that they are a subscriber
+      themesong = Repo.get_by(Mixery.Themesong, twitch_user_id: id)
 
-          System.cmd("mpv", ["--no-terminal", themesong.path])
-
-          # After themesong is done, start the music again
-          Playerctl.play()
-        end)
-
-      _ ->
-        nil
+      if themesong != nil do
+        Mixery.ThemesongLedger.mark_themesong_played(id)
+        # Mixery.Media.AudioPlayer.add_to_queue(themesong.path)
+        Mixery.broadcast_event(%Event.PlayAudio{
+          audio_url: "/themesongs/themesong-#{id}.mp3",
+          user: user,
+          greeting: themesong.name
+        })
+      end
     end
 
     {:noreply, state}
   end
 
-  def handle_info(%Event.Chat{user: user, is_first_message_today: true}, state) do
-    # Coin.insert(user, Coin.calculate(message), "chat")
-    _ = user
-
+  def handle_info(%Event.Chat{} = _message, state) do
     {:noreply, state}
   end
 

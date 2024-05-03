@@ -1,6 +1,6 @@
 return require("misery.task").make_task {
   name = "Ed",
-  timeout = 5 * 1000,
+  timeout = 5 * 60 * 1000,
   requires_focus = false,
   start = function(self)
     vim.cmd.w()

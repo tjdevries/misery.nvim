@@ -22,17 +22,24 @@ defmodule Mixery.EffectHandler do
       amount when amount >= effect.cost ->
         Coin.insert(user, -effect.cost, "effect_execute:#{effect.id}")
 
-        %EffectLedger{
-          effect_id: effect.id,
-          twitch_user_id: user.id,
-          prompt: user_input,
-          reason: "execute-effect",
-          cost: effect.cost
-        }
-        |> Repo.insert!()
+        effect_model =
+          %EffectLedger{
+            effect_id: effect.id,
+            twitch_user_id: user.id,
+            prompt: user_input,
+            reason: "execute-effect",
+            cost: effect.cost,
+            status: :queued
+          }
+          |> Repo.insert!()
 
         # TODO: This maybe should always happen together?
-        Mixery.broadcast_event(%Event.ExecuteEffect{effect: effect, user: user, input: user_input})
+        Mixery.broadcast_event(%Event.ExecuteEffect{
+          id: effect_model.id,
+          effect: effect,
+          user: user,
+          input: user_input
+        })
 
         Mixery.Job.execute_event(user.id, effect.id)
 

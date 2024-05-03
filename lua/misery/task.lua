@@ -33,7 +33,7 @@ Task.__index = Task
 
 ---@class misery.TaskOpts
 ---@field name string
----@field args mixery.RewardRedemption
+---@field args mixery.ExecuteEffect
 ---@field timeout number: Total number of ms to run
 ---@field requires_focus? boolean: Whether the task requires the window to be focused
 ---@field update_width? number: Width of the update window
@@ -177,6 +177,8 @@ function Task:start()
 end
 
 function Task:done(success)
+  local effect_id = self.opts.args.id
+
   -- Clean up focused variable
   focused = {}
 
@@ -200,6 +202,8 @@ function Task:done(success)
       vim.notify(string.format("[MISERY]: task:_after() failed\n%s", after_msg))
     end
   end
+
+  require("misery.channel").send_effect_completed(effect_id)
 end
 
 return {
@@ -219,6 +223,23 @@ return {
           return {}
         end,
         done = init.done,
+      })
+    end
+  end,
+  display_task = function(name, timeout)
+    return function(opts, cb)
+      opts = vim.tbl_deep_extend("force", opts or {}, {
+        name = name,
+        timeout = timeout,
+      })
+
+      cb(Task.new {
+        name = name,
+        timeout = timeout,
+        args = opts,
+        start = function() end,
+        update = function() end,
+        done = function() end,
       })
     end
   end,

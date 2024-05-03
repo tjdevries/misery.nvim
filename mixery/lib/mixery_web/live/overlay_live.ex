@@ -7,12 +7,13 @@ defmodule MixeryWeb.OverlayLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      Mixery.subscribe_to_play_video_events()
+      Mixery.subscribe_to_play_media_events()
       Mixery.subscribe_to_execute_effect_events()
     end
 
     socket =
       socket
+      |> assign(:themesongs, :queue.new())
       |> assign(:video_url, nil)
       |> assign(:effect, nil)
 
@@ -21,12 +22,30 @@ defmodule MixeryWeb.OverlayLive do
 
   @impl true
   def render(assigns) do
+    # <div :if={@effect}>
+    #   <div class="bg-red-300 w-full h-full absolute"></div>
+    # </div>
+
+    audio_message =
+      case :queue.out(assigns.themesongs) do
+        {{:value, audio_message}, _} -> audio_message
+        _ -> nil
+      end
+
     case assigns.video_url do
+      _ when audio_message != nil ->
+        dbg({:audio_message, audio_message})
+
+        ~H"""
+        <div class="text-xl">
+          <%= audio_message.greeting %> | <%= audio_message.user.display %>
+          <audio autoplay src={audio_message.url} id="audio-player" phx-hook="AudioPlayer"></audio>
+        </div>
+        """
+
       url when url in [nil, ""] ->
         ~H"""
-        <div :if={@effect}>
-          <div class="bg-red-300 w-full h-full absolute"></div>
-        </div>
+        No Audio
         """
 
       url ->
@@ -39,6 +58,18 @@ defmodule MixeryWeb.OverlayLive do
         </div>
         """
     end
+  end
+
+  @impl true
+  def handle_info(%Event.PlayAudio{audio_url: audio_url} = msg, socket) do
+    Mixery.Media.Playerctl.pause()
+
+    {:noreply,
+     update(
+       socket,
+       :themesongs,
+       &:queue.in(%{url: audio_url, user: msg.user, greeting: msg.greeting}, &1)
+     )}
   end
 
   @impl true
@@ -71,5 +102,18 @@ defmodule MixeryWeb.OverlayLive do
     end
 
     {:noreply, assign(socket, :video_url, nil)}
+  end
+
+  @impl true
+  def handle_event("audio-ended", _, socket) do
+    if :queue.len(socket.assigns.themesongs) == 1,
+      do: Mixery.Media.Playerctl.play()
+
+    {:noreply, update(socket, :themesongs, &:queue.drop/1)}
+  end
+
+  def handle_event(event, _, socket) do
+    dbg({:unhandled_event, event})
+    {:noreply, socket}
   end
 end

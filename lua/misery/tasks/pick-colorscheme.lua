@@ -5,7 +5,12 @@ local Task = require("misery.task").Task
 local create = function(opts, callback)
   opts = opts or {}
 
-  local timeout = opts.timeout or (5 * 1000)
+  local timeout = opts.timeout or (30 * 1000)
+
+  local colorscheme = opts.colorscheme or opts.input
+  if colorscheme == "hotdog" then
+    timeout = timeout / 3
+  end
 
   callback(Task.new {
     args = opts,
@@ -18,7 +23,6 @@ local create = function(opts, callback)
       end, colorschemes)
 
       print(vim.inspect { task = "colorscheme", opts = opts })
-      local colorscheme = opts.colorscheme or opts.input
       self.state.colorscheme = colorscheme
       if not vim.tbl_contains(colorschemes, colorscheme) then
         self.state.bad_colorscheme = true
@@ -33,6 +37,8 @@ local create = function(opts, callback)
       local last_line = nil
       if self.state.bad_colorscheme then
         last_line = string.format("Invalid colorscheme: %s", self.state.colorscheme)
+      else
+        last_line = self.state.colorscheme
       end
 
       return { last_line }

@@ -5,6 +5,14 @@ end
 
 SCHEDULER_TIMER = vim.uv.new_timer()
 
+-- local group = vim.api.nvim_create_augroup("misery-scheduler", { clear = true })
+-- vim.api.nvim_create_autocmd("VimLeavePre", {
+--   group = group,
+--   callback = function()
+--     local tass = vim.json.encod
+--   end,
+-- })
+
 local M = {}
 
 M.tasks = {}

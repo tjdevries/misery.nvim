@@ -1,5 +1,5 @@
 return require("misery.task").make_task {
-  name = "Right-to-Left",
+  name = "tfel-ot-thgir",
   timeout = 60 * 1000,
   start = function()
     for _, window in ipairs(vim.api.nvim_list_wins()) do

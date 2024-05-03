@@ -6,7 +6,7 @@ local Task = require("misery.task").Task
 local create = function(opts, callback)
   opts = opts or {}
 
-  local timeout = opts.timeout or (15 * 1000)
+  local timeout = opts.timeout or (60 * 5 * 1000)
 
   callback(Task.new {
     args = opts,

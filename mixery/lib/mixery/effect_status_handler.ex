@@ -9,6 +9,7 @@ defmodule Mixery.EffectStatusHandler do
   alias Mixery.Repo
   alias Mixery.Effect
   alias Mixery.EffectStatus
+  alias Mixery.EffectLedger
 
   @rewrite_enabled false
 
@@ -19,21 +20,22 @@ defmodule Mixery.EffectStatusHandler do
   @impl true
   def init(_args) do
     Mixery.subscribe_to_neovim_connection_events()
+    Mixery.subscribe_to_execute_effect_completed_events()
 
     Effect
     |> Repo.all()
     |> Enum.each(fn effect ->
       case effect.enabled_on do
-        :never ->
+        :always_ ->
+          nil
+
+        _ ->
           %EffectStatus{
             effect_id: effect.id,
             status: :disabled
           }
           |> EffectStatus.changeset(%{})
           |> Repo.insert!()
-
-        _ ->
-          nil
       end
     end)
 
@@ -55,6 +57,16 @@ defmodule Mixery.EffectStatusHandler do
     end
 
     {:noreply, state |> Map.put(:connections, connections)}
+  end
+
+  def handle_info(%Event.ExecuteEffectCompleted{execution_id: execution_id}, state) do
+    execution = Repo.get!(EffectLedger, execution_id)
+
+    execution
+    |> Ecto.Changeset.change(status: :completed)
+    |> Repo.update!()
+
+    {:noreply, state}
   end
 
   def get_all_effect_statuses() do

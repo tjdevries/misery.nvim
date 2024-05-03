@@ -1,9 +1,6 @@
 defmodule Mixery.EffectStatus do
   use Ecto.Schema
   import Ecto.Changeset
-  import Ecto.Query
-
-  alias Mixery.Repo
 
   schema "effect_status" do
     belongs_to(:effect, Mixery.Effect, type: :string)

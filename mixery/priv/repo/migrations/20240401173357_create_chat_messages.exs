@@ -4,7 +4,7 @@ defmodule Mixery.Repo.Migrations.CreateChatMessages do
   def change do
     create table(:chat_messages) do
       add :twitch_user_id, references(:twitch_users, type: :string)
-      add :text, :string
+      add :text, :text
 
       timestamps(type: :utc_datetime)
     end

@@ -3,7 +3,6 @@ defmodule Mix.Tasks.CreateEffects do
   @shortdoc "Echoes arguments"
   use Mix.Task
 
-  import Ecto.Query
   alias Mixery.Repo
 
   alias Mixery.Effect
@@ -17,7 +16,7 @@ defmodule Mix.Tasks.CreateEffects do
 
     {:ok, _} = Application.ensure_all_started(:req)
 
-    timeout_minute = 1
+    timeout_minute = 60
 
     effects = [
       %Effect{
@@ -25,7 +24,7 @@ defmodule Mix.Tasks.CreateEffects do
         cost: 5,
         title: "Put on a Suit Coat",
         prompt: "Have TJ put on a suit coat for the rest of the stream.",
-        enabled_on: :always,
+        enabled_on: :never,
         max_per_stream: 1
       },
       %Effect{
@@ -34,7 +33,7 @@ defmodule Mix.Tasks.CreateEffects do
         title: "Play the Marimba",
         prompt:
           "I will play one of the two songs I can actually play right now. I will practice more later.",
-        enabled_on: :always,
+        enabled_on: :never,
         max_per_stream: 1
       },
       %Effect{
@@ -44,7 +43,7 @@ defmodule Mix.Tasks.CreateEffects do
         prompt:
           "I'll solve today's wordle. If I fail, I delete a file of your choosing from my config",
         is_user_input_required: true,
-        enabled_on: :always,
+        enabled_on: :never,
         max_per_stream: 1
       },
       %Effect{
@@ -54,7 +53,7 @@ defmodule Mix.Tasks.CreateEffects do
         prompt:
           "If I don't get it first try, I'll delete a file of your choosing from my config.",
         is_user_input_required: true,
-        enabled_on: :always,
+        enabled_on: :never,
         max_per_stream: 1
       },
       %Effect{
@@ -63,8 +62,8 @@ defmodule Mix.Tasks.CreateEffects do
         title: "Make me switch to a different seat",
         prompt:
           "Choose between 'chair', 'ball', 'standing' until someone else chooses or one hour (whichever is sooner)",
-        enabled_on: :always,
-        cooldown: 5 * timeout_minute
+        enabled_on: :never,
+        cooldown: 60 * timeout_minute
       },
       %Effect{
         id: "delete-random-file",
@@ -106,7 +105,7 @@ defmodule Mix.Tasks.CreateEffects do
         prompt: "Shines flashlight in the darkness of code.",
         enabled_on: :neovim,
         cost: 5,
-        cooldown: 2 * timeout_minute
+        cooldown: 5 * timeout_minute
       },
       %Effect{
         id: "invisaline",
@@ -121,7 +120,7 @@ defmodule Mix.Tasks.CreateEffects do
         title: "Hide my cursor",
         prompt: "I will be unable to see my cursor at all.",
         enabled_on: :neovim,
-        cooldown: 30 * timeout_minute
+        cooldown: 5 * timeout_minute
       },
       %Effect{
         cost: 15,
@@ -133,20 +132,22 @@ defmodule Mix.Tasks.CreateEffects do
       },
       # Add on-screen keyboard only
       %Effect{
+        cost: 5,
         id: "on-screen-keyboard",
         title: "MODE: On Screen Keyboard",
         prompt: "I can only use the on screen keyboard to type (including vim motions).",
         enabled_on: :rewrite,
-        cost: 5
+        cooldown: 30 * timeout_minute
       },
       # Add tablet-writing only
       %Effect{
         id: "tablet-keyboard",
+        cost: 5,
         title: "MODE: Tablet Handwriting Only",
         prompt:
           "I can only use my tablet to type via handwriting-to-text (including vim motions).",
         enabled_on: :rewrite,
-        cost: 5
+        cooldown: 30 * timeout_minute
       },
       %Effect{
         id: "delayed-keyboard",
@@ -154,13 +155,14 @@ defmodule Mix.Tasks.CreateEffects do
         prompt:
           "We intercept every keystroke that I send to the computer and delay it 3 seconds before executing it",
         enabled_on: :rewrite,
+        cooldown: 15 * timeout_minute,
         cost: 15
       },
       # Editors
       %Effect{
         cost: 50,
         id: "chat-gpt-only",
-        title: "EDITOR: Only can copy/paste chat gpt",
+        title: "EDITOR: Only can copy/paste chat gpt for 5 minutes",
         prompt:
           "Use ChatGPT as my editor. I cannot type anything into nvim. Only allowed to copy/paste to-and-from chat gpt.",
         enabled_on: :rewrite
@@ -168,24 +170,24 @@ defmodule Mix.Tasks.CreateEffects do
       %Effect{
         cost: 100,
         id: "vs-c*de",
-        title: "EDITOR: Use VS C*de for 15 minutes",
-        prompt: "Only allowed to use default VS C*de for 15 minutes. No other editors allowed.",
+        title: "EDITOR: Use VS C*de for 5 minutes",
+        prompt: "Only allowed to use default VS C*de for 5 minutes. No other editors allowed.",
         enabled_on: :rewrite,
-        cooldown: 60 * timeout_minute
+        cooldown: 30 * timeout_minute
       },
       %Effect{
         cost: 50,
         id: "emacs",
-        title: "EDITOR: Use Emacs for 15 minutes",
-        prompt: "Open default Emacs for 15 minutes. No other editors allowed.",
+        title: "EDITOR: Use Emacs for 5 minutes",
+        prompt: "Open default Emacs for 5 minutes. No other editors allowed.",
         enabled_on: :rewrite,
-        cooldown: 60 * timeout_minute
+        cooldown: 30 * timeout_minute
       },
       %Effect{
         cost: 50,
         id: "ed",
-        title: "EDITOR: Use `ed` for 15 minutes",
-        prompt: "Open the default editor (ed) for 15 minutes. No other editors allowed.",
+        title: "EDITOR: Use `ed` for 5 minutes",
+        prompt: "Open the default editor (ed) for 5 minutes. No other editors allowed.",
         enabled_on: :rewrite,
         cooldown: 60 * timeout_minute
       },
@@ -221,6 +223,7 @@ defmodule Mix.Tasks.CreateEffects do
         title: "No Going Back",
         prompt: "If my cursor moves backwards at all, the entire file is deleted.",
         is_user_input_required: false,
+        cooldown: 15 * timeout_minute,
         enabled_on: :rewrite
       },
       %Effect{
@@ -238,7 +241,7 @@ defmodule Mix.Tasks.CreateEffects do
         prompt: "Five minutes of peaceful editing for teej",
         is_user_input_required: false,
         enabled_on: :rewrite,
-        cooldown: 60 * 60
+        cooldown: 60 * timeout_minute
       },
       # Currently only via neovim?... But could be other places I guess
       %Effect{

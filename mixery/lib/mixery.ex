@@ -11,10 +11,11 @@ defmodule Mixery do
   @coin_event "coin-event"
   @effect_status_update_event "effect-status-update-event"
   @execute_effect_event "execute-effect-event"
+  @execute_effect_completed_event "execute-effect-completed-event"
   @neovim_connection_event "neovim-connection-event"
   @reward_event "reward-event"
   @reward_status_update_event "reward-status-update-event"
-  @play_video_event "play-video-event"
+  @play_media_event "play-media-event"
   @send_chat_event "send-chat-event"
   @subscription_event "subscription-event"
 
@@ -60,6 +61,10 @@ defmodule Mixery do
     broadcast(@execute_effect_event, event)
   end
 
+  def broadcast_event(%Event.ExecuteEffectCompleted{} = event) do
+    broadcast(@execute_effect_completed_event, event)
+  end
+
   def broadcast_event(%Event.NeovimConnection{} = event) do
     broadcast(@neovim_connection_event, event)
   end
@@ -73,7 +78,11 @@ defmodule Mixery do
   end
 
   def broadcast_event(%Event.PlayVideo{} = event) do
-    broadcast(@play_video_event, event)
+    broadcast(@play_media_event, event)
+  end
+
+  def broadcast_event(%Event.PlayAudio{} = event) do
+    broadcast(@play_media_event, event)
   end
 
   def subscribe_to_sub_events() do
@@ -112,7 +121,11 @@ defmodule Mixery do
     subscribe(@execute_effect_event)
   end
 
-  def subscribe_to_play_video_events() do
-    subscribe(@play_video_event)
+  def subscribe_to_execute_effect_completed_events() do
+    subscribe(@execute_effect_completed_event)
+  end
+
+  def subscribe_to_play_media_events() do
+    subscribe(@play_media_event)
   end
 end

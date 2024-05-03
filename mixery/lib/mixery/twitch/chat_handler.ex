@@ -1,9 +1,23 @@
 defmodule Mixery.Twitch.UserBadges do
-  defstruct [:sub_tier, :moderator, :vip, :broadcaster]
+  @type t :: %__MODULE__{
+          sub_tier: :tier_1 | :tier_2 | :tier_3 | nil,
+          subscriber: boolean(),
+          moderator: boolean(),
+          vip: boolean(),
+          broadcaster: boolean()
+        }
+  defstruct [:sub_tier, :subscriber, :moderator, :vip, :broadcaster]
 end
 
 defmodule Mixery.Twitch.Message do
+  @type t :: %__MODULE__{
+          user: Mixery.Twitch.User.t(),
+          text: String.t(),
+          badges: Mixery.Twitch.UserBadges.t()
+        }
   defstruct [:user, :text, :badges]
+
+  defguard is_subscriber(message) when message.badges.sub_tier != nil
 end
 
 defmodule Mixery.Twitch.ChatHandler do
@@ -16,7 +30,6 @@ defmodule Mixery.Twitch.ChatHandler do
   alias Mixery.Repo
   alias Mixery.Twitch
   alias Mixery.Twitch.Message
-  alias Mixery.Twitch.User
   alias Mixery.ChatMessage
 
   # it's more common to grab all the variables from matching in the first line of the function like
@@ -39,19 +52,16 @@ defmodule Mixery.Twitch.ChatHandler do
     %ChatMessage{twitch_user_id: user.id, text: text}
     |> Repo.insert!()
 
-    dbg({:chat_message, "Processing: #{user.display}: #{text}"})
-
     Mixery.broadcast_event(%Event.Chat{
       user: user,
-      message: text,
+      message: message,
       is_first_message_today: is_first_message_today
     })
 
     case text do
       "!" <> _ -> handle_command(message)
       "teejdvFocus" <> _ -> handle_command(message)
-      text -> handle_chat_message(message)
-      _ -> nil
+      _ -> handle_chat_message(message)
     end
   end
 
@@ -81,15 +91,42 @@ defmodule Mixery.Twitch.ChatHandler do
     Mixery.broadcast_event(%Event.SendChat{message: song})
   end
 
-  defp handle_command(%Message{text: "!test", user: %{login: "teej_dv"}}) do
-    Mixery.broadcast_event(%Event.Chat{
-      user: %{login: "piq9117", id: "103596114"},
-      message: "test",
-      is_first_message_today: true
+  defp handle_command(%Message{text: "!test", user: %{login: "teej_dv"}} = message) do
+    message = %{message | user: %{id: "103596114", login: "piq9117", display: "Piq9117"}}
+    dbg({:piq_impersonation, message})
+    Mixery.broadcast_event(%Event.Chat{message: message})
+  end
+
+  defp handle_command(
+         %Message{
+           text: "!themesong" <> _,
+           badges: %{subscriber: subscriber, moderator: moderator, vip: vip}
+         } = message
+       )
+       when subscriber or moderator or vip do
+    case Mixery.Media.Downloader.from_chat(message) do
+      {:ok, config} ->
+        Task.start(fn -> Mixery.Media.Downloader.download(config) end)
+
+      {:error, err} ->
+        Mixery.broadcast_event(%Event.SendChat{message: "@#{message.user.display}: #{err}"})
+    end
+  end
+
+  defp handle_command(%Message{text: "!themesong" <> _} = message) do
+    Mixery.broadcast_event(%Event.SendChat{
+      message:
+        "@#{message.user.display}: Themesongs are for subscribers only (FIVE DOLLARS A MONTH!)"
     })
   end
 
   defp handle_command(%Message{text: "!coins"}) do
+    Mixery.broadcast_event(%Event.SendChat{
+      message: "Rewards Dashboard: https://rewards.teej.tv/dashboard"
+    })
+  end
+
+  defp handle_command(%Message{text: "!dashboard"}) do
     Mixery.broadcast_event(%Event.SendChat{
       message: "Rewards Dashboard: https://rewards.teej.tv/dashboard"
     })
@@ -157,6 +194,7 @@ defmodule Mixery.Twitch.ChatHandler do
 
     %Mixery.Twitch.UserBadges{
       sub_tier: sub_tier,
+      subscriber: sub_tier != nil,
       moderator: moderator,
       vip: vip,
       broadcaster: broadcaster

@@ -25,10 +25,22 @@ import topbar from "../vendor/topbar";
 window.sessionStorage.removeItem("phx:longpoll");
 
 let csrfToken = document
-  .querySelector("meta[name='csrf-token']")
-  .getAttribute("content");
+	.querySelector("meta[name='csrf-token']")
+	.getAttribute("content");
+
+let Hooks = {};
+Hooks.AudioPlayer = {
+	mounted() {
+		this.el.addEventListener("ended", e => {
+			//alert("yayaya");
+			this.pushEvent("audio-ended", {});
+		});
+	}
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {
-  params: { _csrf_token: csrfToken },
+	params: { _csrf_token: csrfToken },
+	hooks: Hooks,
 });
 
 // Show progress bar on live navigation and form submits

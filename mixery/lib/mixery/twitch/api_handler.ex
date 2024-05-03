@@ -5,22 +5,12 @@ defmodule Mixery.Twitch.ApiHandler do
   """
   use GenServer
 
-  import Ecto.Query
-  alias Mixery.Repo
-
   require Logger
 
   alias Mixery.Coin
   alias Mixery.Event
+  alias Mixery.Repo
   alias Mixery.Twitch.ChannelReward
-
-  @status_always true
-  @status_neovim true
-
-  @typedoc """
-  Twitch app access token with required scopes for the provided `subscriptions`
-  """
-  @type access_token :: String.t()
 
   @typedoc """
   The IDs of the channels we're subscribing to or something.
@@ -41,12 +31,8 @@ defmodule Mixery.Twitch.ApiHandler do
   The options accepted (or required) by the Websocket client.
   """
   @type option ::
-          {:access_token, access_token()}
-          | {:client_id, client_id()}
+          {:client_id, client_id()}
           | {:user_id, user_id()}
-
-  # The options accepted (and required) by the websocket client.
-  @required_opts ~w[user_id client_id access_token ]a
 
   def child_spec(opts) do
     %{
@@ -59,20 +45,21 @@ defmodule Mixery.Twitch.ApiHandler do
   @doc false
   @spec start_link([option()]) :: Supervisor.on_start()
   def start_link(opts) do
-    if not Enum.all?(@required_opts, &Keyword.has_key?(opts, &1)) do
-      raise ArgumentError,
-        message:
-          "missing required options (#{inspect(@required_opts)}), got: #{inspect(Keyword.keys(opts))}"
-    end
+    # if not Enum.all?(@required_opts, &Keyword.has_key?(opts, &1)) do
+    #   raise ArgumentError,
+    #     message:
+    #       "missing required options (#{inspect(@required_opts)}), got: #{inspect(Keyword.keys(opts))}"
+    # end
 
     # Pull the client ID and access token from the opts and put them into an
     # auth struct for the client.
-    {client_id, opts} = Keyword.pop!(opts, :client_id)
-    {access_token, opts} = Keyword.pop!(opts, :access_token)
+    # {client_id, opts} = Keyword.pop!(opts, :client_id)
+    # {client_secret, opts} = Keyword.pop!(opts, :client_secret)
+    # {access_token, opts} = Keyword.pop!(opts, :access_token)
+    # {refresh_token, opts} = Keyword.pop!(opts, :refresh_token)
 
-    auth =
-      TwitchAPI.Auth.new(client_id)
-      |> TwitchAPI.Auth.put_access_token(access_token)
+    # TwitchAPI.Auth.new(client_id, client_secret, access_token, refresh_token)
+    auth = TwitchAPI.AuthStore.get(Mixery.Twitch.AuthStore)
 
     {user_id, opts} = Keyword.pop!(opts, :user_id)
     _ = opts
@@ -129,6 +116,8 @@ defmodule Mixery.Twitch.ApiHandler do
 
   @impl true
   def handle_info(%Event.Reward{redemption: redemption, status: :fulfilled}, state) do
+    Logger.info("[TwitchApiHandler] Reward Redemption: #{inspect(redemption.reward.id)}")
+
     case redemption.reward do
       %ChannelReward{id: "garner-teej-coins"} ->
         Coin.insert(redemption.user, 1, redemption.reward.id)

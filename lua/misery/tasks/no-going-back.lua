@@ -7,7 +7,7 @@ local group = vim.api.nvim_create_augroup("no_going_back", {})
 local create = function(opts, callback)
   opts = opts or {}
 
-  local timeout = opts.timeout or (5 * 60 * 1000)
+  local timeout = opts.timeout or (1 * 60 * 1000)
   local changed = false
   local last_cursor_position = { 0, 0 }
 
@@ -18,6 +18,9 @@ local create = function(opts, callback)
     name = "No Going Back",
     timeout = timeout,
     start = function()
+      -- Move to the top of the file, so that we can actually code during this segment
+      vim.cmd "normal! gg"
+
       vim.api.nvim_create_autocmd("InsertLeavePre", {
         group = group,
         callback = function()

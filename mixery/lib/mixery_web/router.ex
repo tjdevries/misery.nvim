@@ -37,6 +37,7 @@ defmodule MixeryWeb.Router do
     plug :put_root_layout, html: {MixeryWeb.Layouts, :overlay}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug MixeryWeb.Plugs.Secret
   end
 
   scope "/", MixeryWeb do

@@ -13,6 +13,11 @@ defmodule Mixery.Application do
     obs_uri = Keyword.fetch!(obs, :uri)
 
     children = [
+      # Ets Tables
+      Mixery.Colorschemes,
+      # Media
+      Mixery.Media.AudioPlayer,
+      #
       MixeryWeb.Telemetry,
       Mixery.Repo,
       {Ecto.Migrator,
@@ -21,6 +26,7 @@ defmodule Mixery.Application do
       {Phoenix.PubSub, name: Mixery.PubSub},
       {Finch, name: Mixery.Finch},
       {Oban, Application.fetch_env!(:mixery, Oban)},
+      {TwitchEventSub.WebSocket, Application.fetch_env!(:mixery, :event_sub)},
       Mixery.Twitch.ApiHandler.child_spec(Application.fetch_env!(:mixery, :event_sub)),
       Mixery.EffectStatusHandler,
       Mixery.Neovim.Connections,
@@ -28,7 +34,6 @@ defmodule Mixery.Application do
       # {Mixery.Worker, arg},
       # Start to serve requests, typically the last entry
       MixeryWeb.Endpoint,
-      {TwitchEventSub.WebSocket, Application.fetch_env!(:mixery, :event_sub)},
       {Mixery.OBS.Handler, uri: obs_uri, state: %Mixery.OBS.State{}, opts: []},
       Mixery.Server
     ]
