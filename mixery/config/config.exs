@@ -68,6 +68,6 @@ config :mixery, Mixery.Repo,
 # migration_foreign_key: [type: :string]
 
 config :mixery, Oban,
-  engine: Oban.Engines.Lite,
-  queues: [default: 10],
+  plugins: [{Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 14}],
+  queues: [default: 10, twitch: 1],
   repo: Mixery.Repo

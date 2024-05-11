@@ -57,6 +57,7 @@ defmodule Mixery.Server do
         %Event.Chat{
           user: %Mixery.Twitch.User{id: id} = user,
           message: %Message{
+            text: text,
             badges: %Mixery.Twitch.UserBadges{
               subscriber: subscriber,
               moderator: moderator,
@@ -67,10 +68,8 @@ defmodule Mixery.Server do
         state
       )
       when subscriber or moderator or vip do
-    dbg({:handling_sub_message, id})
-
-    # Coin.insert(user, Coin.calculate(message), "chat")
-    if not Mixery.ThemesongLedger.has_played_themesong_today(id) do
+    if not String.starts_with?(text, "!themesong") and
+         not Mixery.ThemesongLedger.has_played_themesong_today(id) do
       # TODO: Check that they are a subscriber
       themesong = Repo.get_by(Mixery.Themesong, twitch_user_id: id)
 

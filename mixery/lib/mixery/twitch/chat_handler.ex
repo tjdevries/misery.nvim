@@ -52,6 +52,9 @@ defmodule Mixery.Twitch.ChatHandler do
     %ChatMessage{twitch_user_id: user.id, text: text}
     |> Repo.insert!()
 
+    # Update user profile occaisionally :)
+    Mixery.Queues.Twitch.queue_user_profile(user.id)
+
     Mixery.broadcast_event(%Event.Chat{
       user: user,
       message: message,

@@ -2,18 +2,27 @@ defmodule Mixery.Twitch.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder, only: [:id, :login, :display]}
+  @derive {Jason.Encoder,
+           only: [
+             :id,
+             :login,
+             :display,
+             :profile_image_url
+           ]}
 
   @type t :: %__MODULE__{
           id: String.t(),
           login: String.t(),
-          display: String.t()
+          display: String.t(),
+          profile_image_url: String.t()
         }
 
   @primary_key {:id, :string, []}
   schema "twitch_users" do
     field(:login, :string)
     field(:display, :string)
+    field(:profile_image_url, :string)
+
     has_one(:coin, Mixery.Coin)
 
     timestamps(type: :utc_datetime)

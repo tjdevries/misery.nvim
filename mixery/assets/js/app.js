@@ -1,3 +1,5 @@
+import "../css/app.css";
+
 // If you want to use Phoenix channels, run `mix help phx.gen.channel`
 // to get started and then uncomment the line below.
 // import "./user_socket.js"
@@ -22,18 +24,26 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
+
 window.sessionStorage.removeItem("phx:longpoll");
 
 let csrfToken = document
 	.querySelector("meta[name='csrf-token']")
 	.getAttribute("content");
 
+
+
 let Hooks = {};
-Hooks.AudioPlayer = {
+Hooks.MediaPlayer = {
 	mounted() {
-		this.el.addEventListener("ended", e => {
-			//alert("yayaya");
-			this.pushEvent("audio-ended", {});
+		this.el.addEventListener("ended", _ => {
+			let toast = document.getElementById("yeah-toast")
+			toast.classList.add('slide-out-top');
+			//console.log(e, this.el);
+			//el.classList.add('slide-out-top')
+			setTimeout(() => {
+				this.pushEvent("media-ended", { id: this.el.id });
+			}, 1000)
 		});
 	}
 }

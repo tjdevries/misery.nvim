@@ -13,8 +13,8 @@ defmodule MixeryWeb.OverlayLive do
 
     socket =
       socket
-      |> assign(:themesongs, :queue.new())
-      |> assign(:video_url, nil)
+      |> assign(:media, :queue.new())
+      |> assign(:current_media, nil)
       |> assign(:effect, nil)
 
     {:ok, socket}
@@ -25,36 +25,53 @@ defmodule MixeryWeb.OverlayLive do
     # <div :if={@effect}>
     #   <div class="bg-red-300 w-full h-full absolute"></div>
     # </div>
-
-    audio_message =
-      case :queue.out(assigns.themesongs) do
-        {{:value, audio_message}, _} -> audio_message
-        _ -> nil
-      end
-
-    case assigns.video_url do
-      _ when audio_message != nil ->
-        dbg({:audio_message, audio_message})
-
+    case assigns.current_media do
+      media when media in [nil, ""] ->
         ~H"""
-        <div class="text-xl">
-          <%= audio_message.greeting %> | <%= audio_message.user.display %>
-          <audio autoplay src={audio_message.url} id="audio-player" phx-hook="AudioPlayer"></audio>
+
+        """
+
+      %{kind: "themesong"} ->
+        ~H"""
+        <div
+          id="yeah-toast"
+          class="slide-in-right w-[600px] m-16 absolute right-10 text-gray-500 bg-white rounded-lg shadow dark:bg-gray-800 dark:text-gray-400"
+          role="alert"
+        >
+          <audio
+            autoplay
+            src={@current_media.url}
+            id={"audio-player-#{@current_media.id}"}
+            phx-hook="MediaPlayer"
+          >
+          </audio>
+          <div class="flex w-full">
+            <img class="m-8 w-32 h-32 rounded-full" src={@current_media.user.profile_image_url} />
+            <div class="m-8 text-2xl font-normal">
+              <span class="mb-8 text-3xl font-semibold text-gray-900 dark:text-white">
+                <%= @current_media.user.display %>
+              </span>
+              <div class="m-8 text-2xl font-normal">
+                <%= @current_media.greeting %>
+              </div>
+            </div>
+          </div>
         </div>
         """
 
-      url when url in [nil, ""] ->
-        ~H"""
-        No Audio
-        """
-
-      url ->
+      %{kind: "video"} ->
         ~H"""
         <div
+          id="yeah-toast"
           class={["flex mx-auto my-auto justify-center items-center rounded-lg min-h-screen"]}
-          style="transform: scale(2);"
         >
-          <video src={url} autoplay="true" />
+          <video
+            style="transform: scale(2);"
+            src={@current_media.url}
+            autoplay="true"
+            id={"video-player-#{@current_media.id}"}
+            phx-hook="MediaPlayer"
+          />
         </div>
         """
     end
@@ -62,27 +79,36 @@ defmodule MixeryWeb.OverlayLive do
 
   @impl true
   def handle_info(%Event.PlayAudio{audio_url: audio_url} = msg, socket) do
-    Mixery.Media.Playerctl.pause()
+    Playerctl.pause()
 
-    {:noreply,
-     update(
-       socket,
-       :themesongs,
-       &:queue.in(%{url: audio_url, user: msg.user, greeting: msg.greeting}, &1)
-     )}
+    media = %{
+      id: UUID.uuid4(),
+      kind: "themesong",
+      url: audio_url,
+      user: msg.user,
+      greeting: msg.greeting
+    }
+
+    case socket.assigns.current_media do
+      nil -> {:noreply, socket |> assign(:current_media, media)}
+      _ -> {:noreply, socket |> update(:media, &:queue.in(media, &1))}
+    end
   end
 
   @impl true
-  def handle_info(%Event.PlayVideo{video_url: video_url, length_ms: length}, socket) do
-    status = Playerctl.status()
+  def handle_info(%Event.PlayVideo{video_url: video_url}, socket) do
+    Playerctl.pause()
 
-    case status do
-      :playing -> Playerctl.pause()
-      _ -> nil
+    media = %{
+      id: UUID.uuid4(),
+      kind: "video",
+      url: video_url
+    }
+
+    case socket.assigns.current_media do
+      nil -> {:noreply, socket |> assign(:current_media, media)}
+      _ -> {:noreply, socket |> update(:media, &:queue.in(media, &1))}
     end
-
-    Process.send_after(self(), {:remove_video, status}, length)
-    {:noreply, assign(socket, :video_url, video_url)}
   end
 
   def handle_info(%Event.ExecuteEffect{effect: effect}, socket) do
@@ -95,21 +121,22 @@ defmodule MixeryWeb.OverlayLive do
   end
 
   @impl true
-  def handle_info({:remove_video, status}, socket) do
-    case status do
-      :playing -> Playerctl.play()
-      _ -> nil
-    end
+  def handle_event("media-ended", _, socket) do
+    # current_media = socket.assigns.current_media
+    # JS.remove_class("slide-in-right", to: "#toast-#{current_media.id}")
+    # JS.add_class("slide-out-top", to: "#toast-#{current_media.id}")
 
-    {:noreply, assign(socket, :video_url, nil)}
-  end
+    {item, media} =
+      case :queue.out(socket.assigns.media) do
+        {:empty, media} ->
+          Mixery.Media.Playerctl.play()
+          {nil, media}
 
-  @impl true
-  def handle_event("audio-ended", _, socket) do
-    if :queue.len(socket.assigns.themesongs) == 1,
-      do: Mixery.Media.Playerctl.play()
+        {{:value, item}, media} ->
+          {item, media}
+      end
 
-    {:noreply, update(socket, :themesongs, &:queue.drop/1)}
+    {:noreply, socket |> assign(current_media: item, media: media)}
   end
 
   def handle_event(event, _, socket) do

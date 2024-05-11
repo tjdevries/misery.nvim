@@ -2,4 +2,40 @@
 /* @import "tailwindcss/components"; */
 /* @import "tailwindcss/utilities"; */
 
-@import url("https://cdn.tailwindcss.com")
+@import url("https://cdn.tailwindcss.com");
+
+.slide-in-right {
+	/* Start offscreen */
+	animation: slideIn 1s forwards;
+}
+
+@keyframes slideIn {
+	0% {
+		opacity: 0.5;
+		transform: translateX(200px);
+	}
+
+	100% {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+.slide-out-top {
+	/* Start offscreen */
+	animation: slideOut 1s forwards;
+}
+
+@keyframes slideOut {
+
+	0% {
+		transform: translateX(0);
+		opacity: 1;
+	}
+
+	100% {
+		transform: translateY(-200px);
+		opacity: 0;
+		/* Slide in and stay for a while */
+	}
+}

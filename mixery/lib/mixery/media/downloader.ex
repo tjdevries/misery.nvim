@@ -27,19 +27,31 @@ defmodule Mixery.Media.Downloader do
   end
 
   @spec download(Config.t()) :: nil
-  def download(%Config{
-        twitch_user_id: twitch_user_id,
-        url: url,
-        out: outfile,
-        from: time_from,
-        to: time_to,
-        length_ms: length_ms,
-        greeting: greeting
-      }) do
+  def download(
+        %Config{
+          twitch_user_id: twitch_user_id,
+          url: url,
+          out: outfile,
+          from: time_from,
+          to: time_to,
+          length_ms: length_ms,
+          greeting: greeting
+        } = config
+      ) do
+    # TODO: Would be fun to make it so people can't share the same URL
+
     downloader_args = ["--downloader-args", "-ss #{time_from} -to #{time_to}"]
 
-    case System.cmd("yt-dlp", @default_args ++ downloader_args ++ ["-o", outfile, url]) do
+    dbg({:downloading, config})
+
+    case System.cmd("yt-dlp", @default_args ++ downloader_args ++ ["-o", outfile, url],
+           stderr_to_stdout: true,
+           into: [],
+           lines: 1024
+         ) do
       {_, 0} ->
+        dbg({:done_download, twitch_user_id})
+
         Repo.insert!(
           %Mixery.Themesong{
             twitch_user_id: twitch_user_id,
@@ -65,6 +77,12 @@ defmodule Mixery.Media.Downloader do
   end
 
   defp parse_millis(millis) do
+    # "5"   -> 500
+    # "01"  -> 010
+    # "003" -> 003
+    millis =
+      String.slice(millis, 0, 4) |> String.pad_trailing(3, "0")
+
     case Integer.parse(millis) do
       {millis, ""} -> {:ok, millis / 1000}
       _ -> {:error, "Not a valid millisecond value: #{millis}"}
@@ -104,7 +122,7 @@ defmodule Mixery.Media.Downloader do
     with {:ok, timestamp, millis} <- split_millis(text),
          {:ok, millis} <- parse_millis(millis),
          {:ok, seconds} <- parse_timestamp(timestamp) do
-      {:ok, timestamp, seconds + millis + 0.0}
+      {:ok, text, seconds + millis + 0.0}
     end
   end
 

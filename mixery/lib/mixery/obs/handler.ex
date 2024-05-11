@@ -98,6 +98,14 @@ defmodule Mixery.OBS.Handler do
   end
 
   def handle_obs_message(op, msg, state) do
+    # We can store starting stream in OBS, and then do theme songs based on that time! Instead of just daily
+    # (Probably good for other stuff too)
+    #
+    # [info] handle_in: "{\"d\":{\"eventData\":{\"outputActive\":false,\"outputState\":\"OBS_WEBSOCKET_OUTPUT_STARTING\"},\"eventIntent\":64,\"eventType\":\"StreamStateChanged\"},\"op\":5}"
+    # [warning] Unhandled OBS Message: 5:%{"eventData" => %{"outputActive" => false, "outputState" => "OBS_WEBSOCKET_OUTPUT_STARTING"}, "eventIntent" => 64, "eventType" => "StreamStateChanged"}
+    # [info] handle_in: "{\"d\":{\"eventData\":{\"outputActive\":true,\"outputState\":\"OBS_WEBSOCKET_OUTPUT_STARTED\"},\"eventIntent\":64,\"eventType\":\"StreamStateChanged\"},\"op\":5}"
+    # [warning] Unhandled OBS Message: 5:%{"eventData" => %{"outputActive" => true, "outputState" => "OBS_WEBSOCKET_OUTPUT_STARTED"}, "eventIntent" => 64, "eventType" => "StreamStateChanged"}
+    # [info] Unhandled event: "stream.online":%{"broadcaster_user_id" => "114257969", "broadcaster_user_login" => "teej_dv", "broadcaster_user_name" => "teej_dv", "id" => "51059504461", "started_at" => "2024-05-10T14:08:13Z", "type" => "live"}
     Logger.warning("Unhandled OBS Message: #{inspect(op)}:#{inspect(msg)}")
     {:ok, state}
   end

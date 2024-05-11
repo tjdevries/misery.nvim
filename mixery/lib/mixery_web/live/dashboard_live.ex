@@ -55,7 +55,11 @@ defmodule MixeryWeb.DashboardLive do
           |> Enum.to_list()
           |> Enum.sort_by(& &1.effect.cost)
 
-        themesong = Repo.get_by(Themesong, twitch_user_id: user.id)
+        themesong =
+          case Repo.get_by(Themesong, twitch_user_id: user.id) do
+            nil -> nil
+            themesong -> themesong.id
+          end
 
         socket =
           socket
@@ -64,7 +68,7 @@ defmodule MixeryWeb.DashboardLive do
           |> assign(balance: balance)
           |> assign(gross: gross)
           |> assign(effects: effects)
-          |> assign(themesong: themesong != nil)
+          |> assign(themesong: themesong)
 
         {:ok, socket}
     end
@@ -89,7 +93,7 @@ defmodule MixeryWeb.DashboardLive do
       </div>
       <div :if={@themesong} class="flex justify-center items-center gap-2">
         <div class="text-xl">Test your themesong!</div>
-        <audio controls src={"/themesongs/themesong-#{@user.id}.mp3"}></audio>
+        <audio controls src={"/themesongs/themesong-#{@user.id}.mp3?vsn=#{@themesong}"}></audio>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 container mx-auto">
         <EffectComponent.card
