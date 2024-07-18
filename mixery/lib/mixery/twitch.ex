@@ -15,4 +15,8 @@ defmodule Mixery.Twitch do
     |> User.changeset(attrs)
     |> Repo.insert_or_update!()
   end
+
+  def get_user(id) do
+    Repo.get(User, id)
+  end
 end

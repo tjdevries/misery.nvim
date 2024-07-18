@@ -23,9 +23,13 @@ defmodule Mixery.ThemesongLedger do
   end
 
   def has_played_themesong_today(id) do
+    recent_livestream =
+      from stream in Mixery.TwitchLiveStream,
+        select: max(stream.started_at)
+
     query =
       from th in __MODULE__,
-        where: fragment("? >= CURRENT_DATE", th.inserted_at),
+        where: th.inserted_at > subquery(recent_livestream),
         where: th.twitch_user_id == ^id
 
     Repo.exists?(query)

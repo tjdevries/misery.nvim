@@ -32,7 +32,6 @@ let csrfToken = document
 	.getAttribute("content");
 
 
-
 let Hooks = {};
 Hooks.MediaPlayer = {
 	mounted() {
@@ -42,10 +41,18 @@ Hooks.MediaPlayer = {
 			//console.log(e, this.el);
 			//el.classList.add('slide-out-top')
 			setTimeout(() => {
-				this.pushEvent("media-ended", { id: this.el.id });
+				this.pushEvent("notification-ended", { id: this.el.id });
 			}, 1000)
 		});
 	}
+}
+
+Hooks.TextPlayer = {
+  mounted() {
+    setTimeout(() => {
+      this.pushEvent("notification-ended", { id: this.el.id });
+    }, this.el.dataset.timeout)
+  }
 }
 
 let liveSocket = new LiveSocket("/live", Socket, {

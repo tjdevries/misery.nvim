@@ -9,28 +9,17 @@ defmodule Mix.Tasks.SendMessage do
   def run(_args) do
     {:ok, _} = Application.ensure_all_started(:req)
 
-    # opts = Application.fetch_env!(:mixery, :event_sub)
-    # {client_id, opts} = Keyword.pop!(opts, :client_id)
-    # {access_token, _} = Keyword.pop!(opts, :access_token)
-    #
-    # auth =
-    #   TwitchAPI.Auth.new(client_id)
-    #   |> TwitchAPI.Auth.put_access_token(access_token)
-
     auth = TwitchAPI.AuthStore.get(Mixery.Twitch.AuthStore)
-
     broadcaster_id = "114257969"
 
     dbg(
-      TwitchAPI.post(auth, "/chat/messages",
-        json: %{
-          broadcaster_id: broadcaster_id,
-          sender_id: broadcaster_id,
-          message: "yayayaya"
+      TwitchAPI.get!(auth, "/streams",
+        params: %{
+          user_id: broadcaster_id,
+          type: "live",
+          first: 1
         }
       )
     )
-
-    dbg({:hello})
   end
 end

@@ -146,17 +146,22 @@ defmodule MixeryWeb.DashboardLive do
     {:noreply, socket}
   end
 
-  def handle_info({:execute_effect, effect_id, input}, socket) do
+  def handle_info({:execute_effect, effect_id, input}, socket) when is_binary(effect_id) do
     user = socket.assigns.user
-    effect = Repo.get!(Effect, effect_id)
 
-    case Mixery.EffectHandler.execute(user, effect, input) do
-      :ok ->
-        Process.send_after(self(), :clear_flash, 5000)
-        {:noreply, socket |> put_flash(:info, "Successfully executed: '#{effect.id}'")}
+    case Repo.get(Effect, effect_id) do
+      nil ->
+        dbg({:unhandled_effect, effect_id})
 
-      {:error, reason} ->
-        {:noreply, socket |> put_flash(:error, reason)}
+      effect ->
+        case Mixery.EffectHandler.execute(user, effect, input) do
+          :ok ->
+            Process.send_after(self(), :clear_flash, 5000)
+            {:noreply, socket |> put_flash(:info, "Successfully executed: '#{effect.id}'")}
+
+          {:error, reason} ->
+            {:noreply, socket |> put_flash(:error, reason)}
+        end
     end
   end
 

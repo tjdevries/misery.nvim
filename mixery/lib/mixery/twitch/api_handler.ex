@@ -85,6 +85,24 @@ defmodule Mixery.Twitch.ApiHandler do
       set_reward_enabled_status(state, reward.twitch_reward_id, true)
     end)
 
+    # Check if currently live
+    case TwitchAPI.get(state.auth, "/streams",
+           params: %{
+             user_id: state.broadcaster_id,
+             type: "live",
+             first: 1
+           }
+         ) do
+      {:ok, %{body: %{"data" => [%{"id" => id, "started_at" => started_at}]}}} ->
+        Mixery.broadcast_event(%Event.TwitchLiveStreamStart{
+          id: id,
+          started_at: started_at
+        })
+
+      other ->
+        dbg({:failed_stream, other})
+    end
+
     {:ok, state}
   end
 

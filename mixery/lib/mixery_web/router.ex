@@ -3,8 +3,6 @@ defmodule MixeryWeb.Router do
 
   import MixeryWeb.TwitchAuth
 
-  # import MixeryWeb.TwitchAuth
-
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -44,6 +42,23 @@ defmodule MixeryWeb.Router do
     pipe_through :overlay
 
     live "/overlay", OverlayLive
+  end
+
+  pipeline :teej do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {MixeryWeb.Layouts, :root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug MixeryWeb.Plugs.Teej
+  end
+
+  scope "/", MixeryWeb do
+    pipe_through :teej
+
+    live "/events", EventLive
+    live "/overlay-web", OverlayLive
   end
 
   # Other scopes may use custom stacks.

@@ -74,7 +74,10 @@ defmodule Mixery.MixProject do
       {:membrane_core, "~> 1.0"},
       {:membrane_hackney_plugin, "~> 0.11.0"},
       {:membrane_mp3_mad_plugin, "~> 0.18.3"},
-      {:membrane_portaudio_plugin, "~> 0.19.2"}
+      {:membrane_portaudio_plugin, "~> 0.19.2"},
+      # Bumblebee
+      {:bumblebee, "~> 0.5.3"},
+      {:exla, ">= 0.0.0"}
     ]
   end
 

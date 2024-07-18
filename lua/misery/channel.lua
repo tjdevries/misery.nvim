@@ -158,4 +158,8 @@ M.send_effect_completed = function(execution_id)
   send_message("neovim:lobby", "effect_execution_completed", { execution_id = execution_id })
 end
 
+M.send_key = function(key)
+  send_message("neovim:lobby", "neovim_on_key", { key = key })
+end
+
 return M

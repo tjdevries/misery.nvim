@@ -23,8 +23,6 @@ defmodule Mixery.Twitch.User do
     field(:display, :string)
     field(:profile_image_url, :string)
 
-    has_one(:coin, Mixery.Coin)
-
     timestamps(type: :utc_datetime)
   end
 

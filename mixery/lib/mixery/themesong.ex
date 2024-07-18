@@ -1,6 +1,8 @@
 defmodule Mixery.Themesong do
   use Ecto.Schema
 
+  alias Mixery.Repo
+
   # @type t :: %__MODULE__{
   #         id: pos_integer(),
   #         twitch_user: Mixery.Twitch.User.t(),
@@ -14,5 +16,9 @@ defmodule Mixery.Themesong do
     field(:length_ms, :integer)
 
     # timestamps(type: :utc_datetime)
+  end
+
+  def get() do
+    Repo.all(__MODULE__)
   end
 end

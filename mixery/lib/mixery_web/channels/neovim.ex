@@ -44,6 +44,11 @@ defmodule MixeryWeb.Channel.Neovim do
     {:noreply, socket}
   end
 
+  def handle_in("neovim_on_key", %{"key" => key}, socket) do
+    Mixery.broadcast_event(%Event.NeovimOnKey{key: key})
+    {:noreply, socket}
+  end
+
   def handle_in(msg, params, socket) do
     dbg({:neovim_channel, msg, params})
     {:noreply, socket}

@@ -32,6 +32,8 @@ Referenced Executables:
 
 # TODO:
 
+- [ ] play siren sounds if twitch staff says hello in chat
+
 - [ ] broadcast a message via block in overlay
 - [ ] login with twitch, associated github account
 

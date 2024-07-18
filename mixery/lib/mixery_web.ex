@@ -18,7 +18,7 @@ defmodule MixeryWeb do
   """
 
   def static_paths,
-    do: ~w(assets fonts images themesongs favicon.ico robots.txt)
+    do: ~w(assets fonts images themesongs media favicon.ico robots.txt)
 
   def router do
     quote do

@@ -11,13 +11,15 @@ defmodule Mixery do
   @coin_event "coin-event"
   @effect_status_update_event "effect-status-update-event"
   @execute_effect_event "execute-effect-event"
-  @execute_effect_completed_event "execute-effect-completed-event"
   @neovim_connection_event "neovim-connection-event"
+  @neovim_events "neovim-events"
+  @notification_event "notification-event"
+  @notification_ended_event "notification-ended-event"
   @reward_event "reward-event"
   @reward_status_update_event "reward-status-update-event"
-  @play_media_event "play-media-event"
   @send_chat_event "send-chat-event"
   @subscription_event "subscription-event"
+  @twitch_live_stream_event "twitch-live-stream-event"
 
   alias Mixery.Event
 
@@ -33,6 +35,10 @@ defmodule Mixery do
     Phoenix.PubSub.unsubscribe(Mixery.PubSub, topic)
   end
 
+  def broadcast_event(%Event.TwitchLiveStreamStart{} = event) do
+    broadcast(@twitch_live_stream_event, event)
+  end
+
   def broadcast_event(%Event.Chat{} = event) do
     broadcast(@chat_event, event)
   end
@@ -41,11 +47,7 @@ defmodule Mixery do
     broadcast(@coin_event, event)
   end
 
-  def broadcast_event(%Event.Subscription.SelfSubscription{} = event) do
-    broadcast(@subscription_event, event)
-  end
-
-  def broadcast_event(%Event.Subscription.GiftSubscription{} = event) do
+  def broadcast_event(%Event.Subscription{} = event) do
     broadcast(@subscription_event, event)
   end
 
@@ -62,7 +64,11 @@ defmodule Mixery do
   end
 
   def broadcast_event(%Event.ExecuteEffectCompleted{} = event) do
-    broadcast(@execute_effect_completed_event, event)
+    broadcast(@neovim_events, event)
+  end
+
+  def broadcast_event(%Event.NeovimOnKey{} = event) do
+    broadcast(@neovim_events, event)
   end
 
   def broadcast_event(%Event.NeovimConnection{} = event) do
@@ -77,12 +83,16 @@ defmodule Mixery do
     broadcast(@reward_status_update_event, event)
   end
 
-  def broadcast_event(%Event.PlayVideo{} = event) do
-    broadcast(@play_media_event, event)
+  def broadcast_event(%Event.Notification{} = event) do
+    broadcast(@notification_event, event)
   end
 
-  def broadcast_event(%Event.PlayAudio{} = event) do
-    broadcast(@play_media_event, event)
+  def broadcast_event(%Event.Notification.Ended{} = event) do
+    broadcast(@notification_ended_event, event)
+  end
+
+  def subscribe_to_twitch_live_stream_events() do
+    subscribe(@twitch_live_stream_event)
   end
 
   def subscribe_to_sub_events() do
@@ -121,11 +131,15 @@ defmodule Mixery do
     subscribe(@execute_effect_event)
   end
 
-  def subscribe_to_execute_effect_completed_events() do
-    subscribe(@execute_effect_completed_event)
+  def subscribe_to_neovim_events() do
+    subscribe(@neovim_events)
   end
 
-  def subscribe_to_play_media_events() do
-    subscribe(@play_media_event)
+  def subscribe_to_notifications() do
+    subscribe(@notification_event)
+  end
+
+  def subscribe_to_notification_ended() do
+    subscribe(@notification_ended_event)
   end
 end

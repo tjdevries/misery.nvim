@@ -20,7 +20,7 @@ defmodule Mixery.EffectStatusHandler do
   @impl true
   def init(_args) do
     Mixery.subscribe_to_neovim_connection_events()
-    Mixery.subscribe_to_execute_effect_completed_events()
+    Mixery.subscribe_to_neovim_events()
 
     Effect
     |> Repo.all()
@@ -66,6 +66,10 @@ defmodule Mixery.EffectStatusHandler do
     |> Ecto.Changeset.change(status: :completed)
     |> Repo.update!()
 
+    {:noreply, state}
+  end
+
+  def handle_info(_, state) do
     {:noreply, state}
   end
 

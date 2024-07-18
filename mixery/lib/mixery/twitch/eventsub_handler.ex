@@ -53,6 +53,11 @@ defmodule Mixery.Twitch.EventSubHandler do
   end
 
   @impl true
+  def handle_event("stream.online", event) do
+    dbg({"stream.online", event})
+    end
+
+  @impl true
   def handle_event(name, event) do
     # TODO: Do something when you get a follow?
     Logger.info("Unhandled event: #{inspect(name)}:#{inspect(event)}")

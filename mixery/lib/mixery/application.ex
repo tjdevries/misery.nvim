@@ -9,8 +9,8 @@ defmodule Mixery.Application do
 
   @impl true
   def start(_type, _args) do
-    obs = Application.fetch_env!(:mixery, :obs)
-    obs_uri = Keyword.fetch!(obs, :uri)
+    # obs = Application.fetch_env!(:mixery, :obs)
+    # obs_uri = Keyword.fetch!(obs, :uri)
 
     children = [
       # Ets Tables
@@ -34,7 +34,8 @@ defmodule Mixery.Application do
       # {Mixery.Worker, arg},
       # Start to serve requests, typically the last entry
       MixeryWeb.Endpoint,
-      {Mixery.OBS.Handler, uri: obs_uri, state: %Mixery.OBS.State{}, opts: []},
+      # {Mixery.OBS.Handler, uri: obs_uri, state: %Mixery.OBS.State{}, opts: []},
+      Mixery.Servers.Notification,
       Mixery.Server
     ]
 

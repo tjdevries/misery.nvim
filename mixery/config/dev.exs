@@ -3,8 +3,8 @@ import Config
 # Configure your database
 config :mixery, Mixery.Repo,
   database: Path.expand("../mixery_dev.db", Path.dirname(__ENV__.file)),
-  pool_size: 5,
-  stacktrace: true,
+  pool_size: 50,
+  stacktrace: false,
   show_sensitive_data_on_connection_error: false
 
 # For development, we disable any cache and enable
@@ -20,7 +20,7 @@ config :mixery, MixeryWeb.Endpoint,
   http: [ip: {0, 0, 0, 0}, port: 4000],
   check_origin: false,
   code_reloader: true,
-  debug_errors: true,
+  debug_errors: false,
   secret_key_base: System.fetch_env!("SECRET_KEY_BASE"),
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:mixery, ~w(--sourcemap=inline --watch)]}
@@ -50,6 +50,7 @@ config :mixery, MixeryWeb.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
+# TODO: This is not including all of my paths!
 config :mixery, MixeryWeb.Endpoint,
   live_reload: [
     patterns: [
@@ -61,7 +62,7 @@ config :mixery, MixeryWeb.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :mixery, dev_routes: true
+config :mixery, dev_routes: false
 
 # config :mixery, :logger, [
 #   {:handler, :file_log, :logger_std_h,
@@ -83,7 +84,7 @@ config :logger, :console, format: "[$level] $message\n"
 
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
-config :phoenix, :stacktrace_depth, 20
+# config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime

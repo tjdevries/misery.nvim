@@ -143,11 +143,15 @@ defmodule Mixery.Twitch.ChatHandler do
 
   defp handle_command(%Message{text: "!focused", badges: badges})
        when badges.broadcaster or badges.moderator do
-    Mixery.broadcast_event(%Event.PlayVideo{video_url: "/images/focused.webm", length_ms: 6000})
+    Mixery.broadcast_event(
+      Event.Notification.video("/images/focused.webm", "transform: scale(2);")
+    )
   end
 
   defp handle_command(%Message{text: "teejdvFocus" <> _, user: %{display: "wagslane"}}) do
-    Mixery.broadcast_event(%Event.PlayVideo{video_url: "/images/focused.webm", length_ms: 6000})
+    Mixery.broadcast_event(
+      Event.Notification.video("/images/focused.webm", "transform: scale(2);")
+    )
   end
 
   defp handle_command(%Message{text: "!send " <> msg, badges: badges}) when badges.broadcaster do

@@ -29,7 +29,7 @@ config :mixery, MixeryWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :mixery, Mixery.Mailer, adapter: Swoosh.Adapters.Local
+# config :mixery, Mixery.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
@@ -71,3 +71,5 @@ config :mixery, Oban,
   plugins: [{Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 14}],
   queues: [default: 10, twitch: 1],
   repo: Mixery.Repo
+
+config :nx, default_backend: EXLA.Backend
