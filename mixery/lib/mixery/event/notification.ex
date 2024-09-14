@@ -11,12 +11,19 @@ defmodule Mixery.Event.Notification do
     field :message, String.t()
   end
 
-  typedstruct module: Subscriber, enforce: true do
+  typedstruct module: SelfSubscriber, enforce: true do
     field :url, String.t()
     field :sub_tier, Mixery.Twitch.SubTier.t()
     field :cumulative, pos_integer()
     field :duration, pos_integer()
     field :streak, pos_integer()
+    field :message, String.t() | nil
+  end
+
+  typedstruct module: GiftSubscription, enforce: true do
+    field :url, String.t()
+    field :total, pos_integer()
+    field :sub_tier, Mixery.Twitch.SubTier.t()
     field :message, String.t() | nil
   end
 
@@ -28,8 +35,8 @@ defmodule Mixery.Event.Notification do
   typedstruct enforce: true do
     field :id, String.t()
     field :user, Mixery.Twitch.User.t() | nil
-    field :kind, :video | :themesong | :subscriber | :text
-    field :data, Video.t() | Themesong.t() | Subscriber.t() | Text.t()
+    field :kind, :video | :themesong | :self_subscriber | :gift_subscription | :text
+    field :data, Video.t() | Themesong.t() | SelfSubscriber.t() | GiftSubscription.t() | Text.t()
   end
 
   @spec video(String.t(), String.t(), Mixery.Twitch.User.t() | nil) :: __MODULE__.t()
@@ -62,7 +69,7 @@ defmodule Mixery.Event.Notification do
     }
   end
 
-  @spec subscriber([
+  @spec self_subscriber([
           {:user, Mixery.Twitch.User.t()}
           | {:sub_tier, Mixery.Twitch.SubTier.t()}
           | {:url, String.t()}
@@ -71,7 +78,7 @@ defmodule Mixery.Event.Notification do
           | {:streak, pos_integer()}
           | {:message, String.t()}
         ]) :: __MODULE__.t()
-  def subscriber(opts) do
+  def self_subscriber(opts) do
     user = Keyword.fetch!(opts, :user)
     sub_tier = Keyword.fetch!(opts, :sub_tier)
     url = Keyword.fetch!(opts, :url)
@@ -83,13 +90,40 @@ defmodule Mixery.Event.Notification do
     %__MODULE__{
       id: UUID.uuid4(),
       user: user,
-      kind: :subscriber,
-      data: %Subscriber{
+      kind: :self_subscriber,
+      data: %SelfSubscriber{
         url: url,
         sub_tier: sub_tier,
         cumulative: cumulative,
         duration: duration,
         streak: streak,
+        message: message
+      }
+    }
+  end
+
+  @spec gift_subscription([
+          {:user, Mixery.Twitch.User.t()}
+          | {:url, String.t()}
+          | {:total, pos_integer()}
+          | {:sub_tier, Mixery.Twitch.SubTier.t()}
+          | {:message, String.t()}
+        ]) :: __MODULE__.t()
+  def gift_subscription(opts) do
+    user = Keyword.fetch!(opts, :user)
+    url = Keyword.fetch!(opts, :url)
+    total = Keyword.fetch!(opts, :total)
+    sub_tier = Keyword.fetch!(opts, :sub_tier)
+    message = Keyword.fetch!(opts, :message)
+
+    %__MODULE__{
+      id: UUID.uuid4(),
+      user: user,
+      kind: :gift_subscription,
+      data: %GiftSubscription{
+        url: url,
+        total: total,
+        sub_tier: sub_tier,
         message: message
       }
     }

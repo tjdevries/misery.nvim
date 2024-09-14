@@ -2,6 +2,7 @@
 mixery.log
 
 themesongs/
+old-themesongs/
 
 # The directory Mix will write compiled artifacts to.
 /_build/

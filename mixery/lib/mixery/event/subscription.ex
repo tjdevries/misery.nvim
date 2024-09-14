@@ -207,22 +207,6 @@ defmodule Mixery.Event.Subscription do
           %GiftSubscription{gifter: chatter, subscription: SubGift.from_event(event)}
 
         "community_sub_gift" ->
-          _ = %{
-            "chatter_is_anonymous" => false,
-            "chatter_user_id" => "581458942",
-            "chatter_user_login" => "4wiru",
-            "chatter_user_name" => "4wiru",
-            "community_sub_gift" => %{
-              "cumulative_total" => 1,
-              "id" => "7830401059032350188",
-              "sub_tier" => "1000",
-              "total" => 1
-            },
-            "message" => %{"fragments" => [], "text" => ""},
-            "message_id" => "d534269b-d71e-4ba5-91b5-c3010040d3d1",
-            "notice_type" => "community_sub_gift"
-          }
-
           %GiftSubscription{gifter: chatter, subscription: CommunitySubGift.from_event(event)}
 
         "gift_paid_upgrade" ->
@@ -244,6 +228,23 @@ defmodule Mixery.Event.Subscription do
       subscription: %SelfSubscription{
         user: user,
         subscription: subscription
+      }
+    }
+  end
+
+  def gift_subscription(gifter, total, message \\ nil) do
+    # field :id, String.t()
+    # field :total, pos_integer()
+    # field :sub_tier, SubTier.t()
+    %__MODULE__{
+      message: message,
+      subscription: %GiftSubscription{
+        gifter: gifter,
+        subscription: %CommunitySubGift{
+          id: UUID.uuid4(),
+          sub_tier: :tier_1,
+          total: total
+        }
       }
     }
   end

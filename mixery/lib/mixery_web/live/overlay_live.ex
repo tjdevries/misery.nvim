@@ -87,7 +87,7 @@ defmodule MixeryWeb.OverlayLive do
         </div>
         """
 
-      %{kind: :subscriber} ->
+      %{kind: :self_subscriber} ->
         # "flex mx-auto my-auto justify-center items-center rounded-lg min-h-screen slide-in-right"
         ~H"""
         <div
@@ -123,8 +123,8 @@ defmodule MixeryWeb.OverlayLive do
               "absolute bg-black right-[10%] top-[10%]",
               "w-1/2 h-[30%]"
             ]}>
-              <div class="flex flex-col items-center justify-center">
-                <div class="text-white text-3xl font-semibold">
+              <div class="flex flex-col items-center text-center justify-center">
+                <div class="text-white text-3xl text-center font-semibold">
                   <%= @current_notification.user.display %> Just Subscribed
                 </div>
 
@@ -137,6 +137,56 @@ defmodule MixeryWeb.OverlayLive do
                     <%= @current_notification.data.cumulative %> Months Subscribed!
                   </div>
                 <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+        """
+
+      %{kind: :gift_subscription} ->
+        # "flex mx-auto my-auto justify-center items-center rounded-lg min-h-screen slide-in-right"
+        ~H"""
+        <div
+          id="yeah-toast"
+          class={[
+            "slide-in-right w-[900px] m-16 absolute right-10 text-gray-500 bg-white rounded-lg shadow",
+            "dark:bg-gray-800 dark:text-gray-400"
+          ]}
+        >
+          <div class="relative">
+            <video
+              class=""
+              style=""
+              src={@current_notification.data.url}
+              autoplay="true"
+              id={"video-player-#{@current_notification.id}"}
+              phx-hook="MediaPlayer"
+            />
+            <div
+              style={[
+                "filter: blur(4px);"
+              ]}
+              class={[
+                "animate-pulse",
+                "rounded-3xl",
+                "backdrop-blur-xl",
+                "absolute bg-black/25 right-[5%] top-[5%]",
+                "w-[60%] h-[40%]"
+              ]}
+            >
+            </div>
+            <div class={[
+              "absolute bg-black right-[10%] top-[10%]",
+              "w-1/2 h-[30%]"
+            ]}>
+              <div class="flex flex-col text-center items-center justify-center">
+                <div class="text-white text-center text-3xl font-semibold">
+                  <%= @current_notification.user.display %> Just Gifted <%= @current_notification.data.total %> Subscriptions
+                </div>
+
+                <div class="text-white text-xl font-semibold">
+                  <%= @current_notification.data.message %>
+                </div>
               </div>
             </div>
           </div>

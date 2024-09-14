@@ -54,6 +54,10 @@ defmodule MixeryWeb.EventLive do
       <CoreComponents.button class="button" phx-click="subscriber-test">
         Test Subscription Event
       </CoreComponents.button>
+
+      <CoreComponents.button class="button" phx-click="gift-test">
+        Test Gifted Subscription Event
+      </CoreComponents.button>
     </div>
     """
   end
@@ -65,10 +69,27 @@ defmodule MixeryWeb.EventLive do
     Mixery.broadcast_event(
       Subscription.self_subscription(
         user,
-        %Event.Subscription.Sub{
+        %Event.Subscription.ReSub{
           sub_tier: :tier_1,
-          duration: 1
+          duration: 1,
+          streak: 3,
+          cumulative: 12
         }
+      )
+    )
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("gift-test", _, socket) do
+    user = Mixery.Twitch.get_user("114257969")
+
+    Mixery.broadcast_event(
+      Subscription.gift_subscription(
+        user,
+        35,
+        "YAYAYAYA"
       )
     )
 
