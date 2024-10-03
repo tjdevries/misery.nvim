@@ -68,7 +68,13 @@ config :mixery, Mixery.Repo,
 # migration_foreign_key: [type: :string]
 
 config :mixery, Oban,
-  plugins: [{Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 14}],
+  plugins: [
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 14}
+    # {Oban.Plugins.Cron,
+    #  crontab: [
+    #    {"*/5 * * * *", Mixery.Queues.TwitchLive}
+    #  ]}
+  ],
   queues: [default: 10, twitch: 1],
   repo: Mixery.Repo
 

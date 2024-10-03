@@ -1,3 +1,21 @@
+defmodule Mixery.Helper do
+  defmacro make_event(name, event) do
+    s = Macro.to_string(name)
+    broadcast_name = String.to_atom("broadcast_event")
+    subscribe_name = String.to_atom("subscribe_to_#{s}_events")
+
+    quote do
+      def unquote(broadcast_name)(unquote(event) = payload) do
+        broadcast(unquote(s), payload)
+      end
+
+      def unquote(subscribe_name)() do
+        subscribe(unquote(s))
+      end
+    end
+  end
+end
+
 defmodule Mixery do
   @moduledoc """
   Mixery keeps the contexts that define your domain
@@ -7,139 +25,34 @@ defmodule Mixery do
   if it comes from the database, an external API or others.
   """
 
-  @chat_event "chat-event"
-  @coin_event "coin-event"
-  @effect_status_update_event "effect-status-update-event"
-  @execute_effect_event "execute-effect-event"
-  @neovim_connection_event "neovim-connection-event"
-  @neovim_events "neovim-events"
-  @notification_event "notification-event"
-  @notification_ended_event "notification-ended-event"
-  @reward_event "reward-event"
-  @reward_status_update_event "reward-status-update-event"
-  @send_chat_event "send-chat-event"
-  @subscription_event "subscription-event"
-  @twitch_live_stream_event "twitch-live-stream-event"
-
-  alias Mixery.Event
-
-  def broadcast(topic, message) do
+  defp broadcast(topic, message) do
     Phoenix.PubSub.broadcast(Mixery.PubSub, topic, message)
   end
 
-  def subscribe(topic) do
+  defp subscribe(topic) do
     Phoenix.PubSub.subscribe(Mixery.PubSub, topic)
   end
 
-  def unsubscribe(topic) do
+  defp unsubscribe(topic) do
     Phoenix.PubSub.unsubscribe(Mixery.PubSub, topic)
   end
 
-  def broadcast_event(%Event.TwitchLiveStreamStart{} = event) do
-    broadcast(@twitch_live_stream_event, event)
-  end
+  require Mixery.Helper
 
-  def broadcast_event(%Event.Chat{} = event) do
-    broadcast(@chat_event, event)
-  end
-
-  def broadcast_event(%Event.Coin{} = event) do
-    broadcast(@coin_event, event)
-  end
-
-  def broadcast_event(%Event.Subscription{} = event) do
-    broadcast(@subscription_event, event)
-  end
-
-  def broadcast_event(%Event.SendChat{} = event) do
-    broadcast(@send_chat_event, event)
-  end
-
-  def broadcast_event(%Event.Reward{} = event) do
-    broadcast(@reward_event, event)
-  end
-
-  def broadcast_event(%Event.ExecuteEffect{} = event) do
-    broadcast(@execute_effect_event, event)
-  end
-
-  def broadcast_event(%Event.ExecuteEffectCompleted{} = event) do
-    broadcast(@neovim_events, event)
-  end
-
-  def broadcast_event(%Event.NeovimOnKey{} = event) do
-    broadcast(@neovim_events, event)
-  end
-
-  def broadcast_event(%Event.NeovimConnection{} = event) do
-    broadcast(@neovim_connection_event, event)
-  end
-
-  def broadcast_event(%Event.EffectStatusUpdate{} = event) do
-    broadcast(@effect_status_update_event, event)
-  end
-
-  def broadcast_event(%Event.RewardStatusUpdate{} = event) do
-    broadcast(@reward_status_update_event, event)
-  end
-
-  def broadcast_event(%Event.Notification{} = event) do
-    broadcast(@notification_event, event)
-  end
-
-  def broadcast_event(%Event.Notification.Ended{} = event) do
-    broadcast(@notification_ended_event, event)
-  end
-
-  def subscribe_to_twitch_live_stream_events() do
-    subscribe(@twitch_live_stream_event)
-  end
-
-  def subscribe_to_sub_events() do
-    subscribe(@subscription_event)
-  end
-
-  def subscribe_to_chat_events() do
-    subscribe(@chat_event)
-  end
-
-  def subscribe_to_coin_events() do
-    subscribe(@coin_event)
-  end
-
-  def subscribe_to_send_chat_events() do
-    subscribe(@send_chat_event)
-  end
-
-  def subscribe_to_reward_events() do
-    subscribe(@reward_event)
-  end
-
-  def subscribe_to_neovim_connection_events() do
-    subscribe(@neovim_connection_event)
-  end
-
-  def subscribe_to_effect_status_update_events() do
-    subscribe(@effect_status_update_event)
-  end
-
-  def subscribe_to_reward_status_update_events() do
-    subscribe(@reward_status_update_event)
-  end
-
-  def subscribe_to_execute_effect_events() do
-    subscribe(@execute_effect_event)
-  end
-
-  def subscribe_to_neovim_events() do
-    subscribe(@neovim_events)
-  end
-
-  def subscribe_to_notifications() do
-    subscribe(@notification_event)
-  end
-
-  def subscribe_to_notification_ended() do
-    subscribe(@notification_ended_event)
-  end
+  alias Mixery.Event
+  Mixery.Helper.make_event(chat, %Event.Chat{})
+  Mixery.Helper.make_event(coin, %Event.Coin{})
+  Mixery.Helper.make_event(donation, %Event.Donation{})
+  Mixery.Helper.make_event(effect_status_update, %Event.EffectStatusUpdate{})
+  Mixery.Helper.make_event(execute_effect, %Event.ExecuteEffect{})
+  Mixery.Helper.make_event(neovim, %Event.ExecuteEffectCompleted{})
+  Mixery.Helper.make_event(neovim_connection, %Event.NeovimConnection{})
+  Mixery.Helper.make_event(neovim_on_key, %Event.NeovimOnKey{})
+  Mixery.Helper.make_event(notification, %Event.Notification{})
+  Mixery.Helper.make_event(notification_ended, %Event.Notification.Ended{})
+  Mixery.Helper.make_event(reward, %Event.Reward{})
+  Mixery.Helper.make_event(reward_status_update, %Event.RewardStatusUpdate{})
+  Mixery.Helper.make_event(send_chat, %Event.SendChat{})
+  Mixery.Helper.make_event(sub, %Event.Subscription{})
+  Mixery.Helper.make_event(twitch_live_stream, %Event.TwitchLiveStreamStart{})
 end

@@ -7,7 +7,7 @@ defmodule MixeryWeb.OverlayLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      Mixery.subscribe_to_notifications()
+      Mixery.subscribe_to_notification_events()
       Mixery.subscribe_to_neovim_events()
       Mixery.subscribe_to_neovim_connection_events()
     end

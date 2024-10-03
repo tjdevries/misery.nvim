@@ -8,8 +8,8 @@ defmodule MixeryWeb.EffectComponent do
   attr :status, :atom, required: true
   attr :effect, Effect, required: true
 
-  def card(%{balance: balance, status: status, effect: %{id: _, cost: cost}} = assigns) do
-    can_afford = balance >= cost
+  def card(%{balance: balance, status: _, effect: %{id: _, cost: cost}} = assigns) do
+    assigns = assign(assigns, :can_afford, balance >= cost)
 
     ~H"""
     <div class="flex flex-col h-full max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
@@ -21,7 +21,7 @@ defmodule MixeryWeb.EffectComponent do
       </div>
 
       <div class="mt-auto">
-        <%= if can_afford and status == :enabled do %>
+        <%= if @can_afford and @status == :enabled do %>
           <%= if @effect.is_user_input_required do %>
             <.live_component
               id={"effect-#{@effect.id}"}

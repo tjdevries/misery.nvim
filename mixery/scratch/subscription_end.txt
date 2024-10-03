@@ -1,0 +1,1 @@
+[info] Unhandled event: "channel.subscription.end":%{"broadcaster_user_id" => "114257969", "broadcaster_user_login" => "teej_dv", "broadcaster_user_name" => "teej_dv", "is_gift" => false, "tier" => "1000", "user_id" => "800...160", "user_login" => "m....k", "user_name" => "m....k"}

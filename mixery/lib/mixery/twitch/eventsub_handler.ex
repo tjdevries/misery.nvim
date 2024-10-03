@@ -53,9 +53,25 @@ defmodule Mixery.Twitch.EventSubHandler do
   end
 
   @impl true
+  def handle_event("channel.cheer", event) do
+    user_id = event["user_id"]
+    user_login = event["user_login"]
+    user_display = event["user_name"]
+    Twitch.upsert_user(user_id, %{login: user_login, display: user_display})
+
+    message = event["message"]
+    bits = event["bits"]
+  end
+
+  @impl true
   def handle_event("stream.online", event) do
     dbg({"stream.online", event})
-    end
+
+    Mixery.broadcast_event(%Event.TwitchLiveStreamStart{
+      id: event["id"],
+      started_at: event["started_at"]
+    })
+  end
 
   @impl true
   def handle_event(name, event) do

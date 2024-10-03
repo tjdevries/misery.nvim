@@ -1,5 +1,5 @@
 defmodule Mixery.EffectLedger do
-  use Ecto.Schema
+  use TypedEctoSchema
   import Ecto.Changeset
 
   @derive {
@@ -7,13 +7,13 @@ defmodule Mixery.EffectLedger do
     only: [:id, :effect_id, :twitch_user_id, :status]
   }
 
-  schema "effect_ledger" do
-    field :reason, :string
-    field :prompt, :string
-    field :cost, :integer
-    field :effect_id, :string
-    field :twitch_user_id, :string
-    field :status, Ecto.Enum, values: [:queued, :completed]
+  typed_schema "effect_ledger" do
+    field :reason, :string, enforce: true
+    field :prompt, :string, enforce: true
+    field :cost, :integer, enforce: true
+    field :effect_id, :string, enforce: true
+    field :twitch_user_id, :string, enforce: true
+    field :status, Ecto.Enum, values: [:queued, :completed], enforce: true
 
     timestamps(type: :utc_datetime)
   end

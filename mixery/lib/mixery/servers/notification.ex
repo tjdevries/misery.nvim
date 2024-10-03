@@ -11,8 +11,8 @@ defmodule Mixery.Servers.Notification do
   @impl GenServer
   def init(_) do
     Mixery.subscribe_to_sub_events()
-    Mixery.subscribe_to_notifications()
-    Mixery.subscribe_to_notification_ended()
+    Mixery.subscribe_to_notification_events()
+    Mixery.subscribe_to_notification_ended_events()
 
     {:ok, :queue.new()}
   end

@@ -4,24 +4,25 @@ defmodule Mixery.Coin do
   alias Mixery.Repo
   alias Mixery.Event
 
+  use TypedStruct
   use Ecto.Schema
   import Ecto.Query
 
   @derive Jason.Encoder
 
-  @type t :: %__MODULE__{
-          user: Twitch.User.t(),
-          amount: pos_integer()
-        }
-  defstruct [:user, :amount]
+  typedstruct enforce: true do
+    field :user, Mixery.Twitch.User.t()
+    field :amount, pos_integer()
+  end
 
   defmodule Ledger do
-    use Ecto.Schema
+    use TypedEctoSchema
 
-    schema "coin_ledger" do
+    typed_schema "coin_ledger" do
+      field :amount, :integer
+      field :reason, :string
+
       belongs_to(:twitch_user, Mixery.Twitch.User, type: :string)
-      field(:amount, :integer)
-      field(:reason, :string)
 
       timestamps(type: :utc_datetime)
     end
@@ -47,37 +48,32 @@ defmodule Mixery.Coin do
 
   def balance_all() do
     query =
-      from(l in Ledger,
-        join: user in assoc(l, :twitch_user),
-        select: {l.twitch_user_id, user.login, user.display, sum(l.amount)},
-        where: l.twitch_user_id == user.id,
-        group_by: [l.twitch_user_id, user.login, user.display]
+      from(u in Mixery.Twitch.User,
+        join: l in Ledger,
+        on: l.twitch_user_id == u.id,
+        select: {u, sum(l.amount)},
+        group_by: [u.id]
       )
 
     Repo.all(query)
-    |> Enum.map(fn {user_id, login, display, amount} ->
-      %__MODULE__{
-        user: %Mixery.Twitch.User{id: user_id, login: login, display: display},
-        amount: amount
-      }
+    |> Enum.map(fn {user, amount} ->
+      %__MODULE__{user: user, amount: amount}
     end)
   end
 
   def gross_all() do
     query =
-      from(l in Ledger,
-        join: user in assoc(l, :twitch_user),
-        select: {l.twitch_user_id, user.login, user.display, sum(l.amount)},
-        where: l.twitch_user_id == user.id and l.amount > 0,
-        group_by: [l.twitch_user_id, user.login, user.display]
+      from(u in Mixery.Twitch.User,
+        join: l in Ledger,
+        on: l.twitch_user_id == u.id,
+        select: {u, sum(l.amount)},
+        where: l.amount > 0,
+        group_by: [u.id]
       )
 
     Repo.all(query)
-    |> Enum.map(fn {user_id, login, display, amount} ->
-      %__MODULE__{
-        user: %Mixery.Twitch.User{id: user_id, login: login, display: display},
-        amount: amount
-      }
+    |> Enum.map(fn {user, amount} ->
+      %__MODULE__{user: user, amount: amount}
     end)
   end
 
