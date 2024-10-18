@@ -83,7 +83,7 @@ defmodule MixeryWeb.EventLive do
 
   @impl true
   def handle_event("gift-test", _, socket) do
-    user = Mixery.Twitch.get_user("114257969")
+    user = Mixery.Twitch.get_user("1068066839")
 
     Mixery.broadcast_event(
       Subscription.gift_subscription(
