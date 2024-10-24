@@ -1,8 +1,6 @@
 defmodule Mixery.Queues.TwitchLive do
   use Oban.Worker, queue: :twitch
 
-  alias Mixery.Event
-
   @impl Oban.Worker
   def perform(%Oban.Job{} = _) do
     # auth = TwitchAPI.AuthStore.get(Mixery.Twitch.AuthStore)

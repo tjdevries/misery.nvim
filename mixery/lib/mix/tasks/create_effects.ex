@@ -250,7 +250,7 @@ defmodule Mix.Tasks.CreateEffects do
         title: "JUMPSCARE",
         prompt: "Play something loud to scare me. And chat.",
         is_user_input_required: false,
-        enabled_on: :neovim
+        enabled_on: :always
       }
     ]
 

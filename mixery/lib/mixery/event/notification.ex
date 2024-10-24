@@ -1,9 +1,41 @@
 defmodule Mixery.Event.Notification do
   use TypedStruct
 
+  typedstruct enforce: true do
+    field :id, String.t()
+    field :user, Mixery.Twitch.User.t() | nil
+    field :kind, :video | :audio | :themesong | :self_subscriber | :gift_subscription | :text
+    field :data, Video.t() | Themesong.t() | SelfSubscriber.t() | GiftSubscription.t() | Text.t()
+  end
+
   typedstruct module: Video, enforce: true do
     field :url, String.t()
     field :style, String.t()
+  end
+
+  @spec video(String.t(), String.t(), Mixery.Twitch.User.t() | nil) :: __MODULE__.t()
+  def video(url, style, user \\ nil) do
+    %__MODULE__{
+      id: UUID.uuid4(),
+      user: user,
+      kind: :video,
+      data: %Video{url: url, style: style}
+    }
+  end
+
+  typedstruct module: Audio, enforce: true do
+    field :url, String.t()
+    field :message, String.t()
+  end
+
+  @spec audio(String.t(), String.t(), Mixery.Twitch.User.t() | nil) :: __MODULE__.t()
+  def audio(url, message, user \\ nil) do
+    %__MODULE__{
+      id: UUID.uuid4(),
+      user: user,
+      kind: :audio,
+      data: %Audio{url: url, message: message}
+    }
   end
 
   typedstruct module: Themesong, enforce: true do
@@ -30,23 +62,6 @@ defmodule Mixery.Event.Notification do
   typedstruct module: Text, enforce: true do
     field :message, String.t()
     field :length_ms, integer()
-  end
-
-  typedstruct enforce: true do
-    field :id, String.t()
-    field :user, Mixery.Twitch.User.t() | nil
-    field :kind, :video | :themesong | :self_subscriber | :gift_subscription | :text
-    field :data, Video.t() | Themesong.t() | SelfSubscriber.t() | GiftSubscription.t() | Text.t()
-  end
-
-  @spec video(String.t(), String.t(), Mixery.Twitch.User.t() | nil) :: __MODULE__.t()
-  def video(url, style, user \\ nil) do
-    %__MODULE__{
-      id: UUID.uuid4(),
-      user: user,
-      kind: :video,
-      data: %Video{url: url, style: style}
-    }
   end
 
   @spec themesong(String.t(), String.t(), Mixery.Twitch.User.t()) :: __MODULE__.t()

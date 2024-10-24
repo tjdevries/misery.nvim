@@ -51,7 +51,7 @@ defmodule MixeryWeb.Router do
     plug :put_root_layout, html: {MixeryWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    # plug MixeryWeb.Plugs.Teej
+    plug MixeryWeb.Plugs.Teej
   end
 
   scope "/", MixeryWeb do
@@ -59,12 +59,8 @@ defmodule MixeryWeb.Router do
 
     live "/events", EventLive
     live "/overlay-web", OverlayLive
+    live "/error", ErrorLive
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", MixeryWeb do
-  #   pipe_through :api
-  # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   # if Application.compile_env(:mixery, :dev_routes) do
@@ -108,8 +104,6 @@ defmodule MixeryWeb.Router do
     live_session :require_authenticated_twitch,
       on_mount: [{MixeryWeb.TwitchAuth, :ensure_authenticated}] do
       live "/dashboard", DashboardLive, :index
-
-      # live "/twitch_accounts/settings", TwitchSettingsLive, :edit
     end
   end
 

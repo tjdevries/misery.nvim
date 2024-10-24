@@ -56,6 +56,9 @@ defmodule MixeryWeb do
         layout: {MixeryWeb.Layouts, :app}
 
       unquote(html_helpers())
+
+      # https://docs.sentry.io/platforms/elixir/integrations/plug_and_phoenix/#phoenix-configuration
+      on_mount Sentry.LiveViewHook
     end
   end
 

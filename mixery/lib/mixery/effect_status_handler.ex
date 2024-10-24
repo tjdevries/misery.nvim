@@ -26,8 +26,13 @@ defmodule Mixery.EffectStatusHandler do
     |> Repo.all()
     |> Enum.each(fn effect ->
       case effect.enabled_on do
-        :always_ ->
-          nil
+        :always ->
+          %EffectStatus{
+            effect_id: effect.id,
+            status: :enabled
+          }
+          |> EffectStatus.changeset(%{})
+          |> Repo.insert!()
 
         _ ->
           %EffectStatus{

@@ -33,9 +33,9 @@ defmodule Mixery do
     Phoenix.PubSub.subscribe(Mixery.PubSub, topic)
   end
 
-  defp unsubscribe(topic) do
-    Phoenix.PubSub.unsubscribe(Mixery.PubSub, topic)
-  end
+  # defp unsubscribe(topic) do
+  #   Phoenix.PubSub.unsubscribe(Mixery.PubSub, topic)
+  # end
 
   require Mixery.Helper
 

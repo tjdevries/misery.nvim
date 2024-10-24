@@ -1,4 +1,6 @@
 defmodule MixeryWeb.Endpoint do
+  use Sentry.PlugCapture
+
   use Phoenix.Endpoint, otp_app: :mixery
 
   # The session will be stored in the cookie and signed,
@@ -10,6 +12,8 @@ defmodule MixeryWeb.Endpoint do
     signing_salt: "kXWmtx1D",
     same_site: "Lax"
   ]
+
+  plug Sentry.PlugContext
 
   socket "/live", Phoenix.LiveView.Socket,
     websocket: [connect_info: [session: @session_options]],

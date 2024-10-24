@@ -59,8 +59,9 @@ defmodule Mixery.Twitch.EventSubHandler do
     user_display = event["user_name"]
     Twitch.upsert_user(user_id, %{login: user_login, display: user_display})
 
-    message = event["message"]
-    bits = event["bits"]
+    # message = event["message"]
+    # bits = event["bits"]
+    Sentry.capture_message("Unhandled cheer: #{inspect(event)}")
   end
 
   @impl true

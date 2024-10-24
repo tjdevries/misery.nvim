@@ -78,7 +78,10 @@ defmodule Mixery.MixProject do
       {:membrane_portaudio_plugin, "~> 0.19.2"},
       # Bumblebee
       {:bumblebee, "~> 0.5.3"},
-      {:exla, ">= 0.0.0"}
+      {:exla, ">= 0.0.0"},
+      # Sentry
+      {:sentry, "~> 10.7.1"},
+      {:hackney, "~> 1.8"}
     ]
   end
 

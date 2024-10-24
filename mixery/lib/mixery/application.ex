@@ -9,6 +9,10 @@ defmodule Mixery.Application do
 
   @impl true
   def start(_type, _args) do
+    :logger.add_handler(:my_sentry_handler, Sentry.LoggerHandler, %{
+      config: %{metadata: [:file, :line]}
+    })
+
     # obs = Application.fetch_env!(:mixery, :obs)
     # obs_uri = Keyword.fetch!(obs, :uri)
 
@@ -36,6 +40,8 @@ defmodule Mixery.Application do
       MixeryWeb.Endpoint,
       # {Mixery.OBS.Handler, uri: obs_uri, state: %Mixery.OBS.State{}, opts: []},
       Mixery.Servers.Notification,
+      Mixery.Servers.Subscriptions,
+      Mixery.Servers.Effect,
       Mixery.Server
     ]
 

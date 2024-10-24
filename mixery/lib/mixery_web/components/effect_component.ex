@@ -11,8 +11,16 @@ defmodule MixeryWeb.EffectComponent do
   def card(%{balance: balance, status: _, effect: %{id: _, cost: cost}} = assigns) do
     assigns = assign(assigns, :can_afford, balance >= cost)
 
+    # <div class="flex flex-col h-full max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+
     ~H"""
-    <div class="flex flex-col h-full max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+    <div class={[
+      "flex flex-col h-full max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700",
+      case @status do
+        :enabled -> ""
+        :disabled -> "hidden"
+      end
+    ]}>
       <div class="mb-3 text-center text-orange-600 font-bold rounded-sm capitalize ">
         <%= @effect.title %>
       </div>

@@ -79,3 +79,13 @@ config :mixery, Oban,
   repo: Mixery.Repo
 
 config :nx, default_backend: EXLA.Backend
+
+# Sentry Configuration, hopefully this is a public key OMEGALUL
+config :sentry,
+  dsn: System.fetch_env!("SENTRY_DSN"),
+  environment_name: Mix.env(),
+  json_library: Jason,
+  enable_source_code_context: true,
+  send_default_pii: true,
+  context_lines: 5,
+  root_source_code_paths: [File.cwd!()]
